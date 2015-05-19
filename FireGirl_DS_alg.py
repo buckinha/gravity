@@ -1,6 +1,6 @@
 import random
 
-def FireGirl_DS_alg(seedValue, min_val, max_val, roughness=0.5):
+def FireGirl_DS_alg(seedValue, min_val, max_val, roughness=0.5, USE_FUEL_BUG=False):
     #This function creates a new 129x129 grid of values. It will return a list
     #  containing two elements, the first is a nested list for the timber_value
     #  grid, and the second is a nested list for the fuel_load grid
@@ -19,14 +19,20 @@ def FireGirl_DS_alg(seedValue, min_val, max_val, roughness=0.5):
     #              range by the roughness value of the previous iteration.
     
     #Creating the timber_value and fuel_load grids
-    timber_val = []
-    fuel_load = []
+    timber_val = [None]*129
+    fuel_load = [None]*129
     for i in range(129):
-        timber_val.append([])
-        fuel_load.append([])
-        for j in range(129):
-            timber_val[i].append(0)
-            fuel_load[i].append(0)
+        timber_val[i] = [0]*129
+        fuel_load[i] = [0]*129
+
+    # timber_val = []
+    # fuel_load = []
+    # for i in range(129):
+    #     timber_val.append([])
+    #     fuel_load.append([])
+    #     for j in range(129):
+    #         timber_val[i].append(0)
+    #         fuel_load[i].append(0)
             
             
     #setting seed value
@@ -52,9 +58,18 @@ def FireGirl_DS_alg(seedValue, min_val, max_val, roughness=0.5):
     
     #seeding the initial 9x9 grid with random values between min_val and max_val
     # (by incrementing in 16s, we'll cover 9 values, i.e. the 9x9 sub-grid)
-    for i in range(0,129,16):
-        for j in range(0,129,16):
-            timber_val[i][j] = random.uniform(min_val, max_val)
+    if USE_FUEL_BUG:
+        #in this version, one line was omitted, and the initial values for fuel
+        # were not set
+        for i in range(0,129,16):
+            for j in range(0,129,16):
+                timber_val[i][j] = random.uniform(min_val, max_val)
+    else:        
+        for i in range(0,129,16):
+            for j in range(0,129,16):
+                timber_val[i][j] = random.uniform(min_val, max_val)
+                fuel_load[i][j] = random.uniform(min_val, max_val)
+
             
     #TESTING
     #print("Step 1 results, 0-17")

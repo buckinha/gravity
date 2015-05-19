@@ -128,7 +128,7 @@ class FireGirlPathway:
             #     self.timber_value.append([])
             #     for j in range(self.height):
             #         self.timber_value[i].append(0)
-            self.timber_value = [[0]*self.height]*self.width
+            #self.timber_value = [[0]*self.height]*self.width
             
             #(Creating a rectangular array to hold fuel-load values for each cell
             # self.fuel_load = []
@@ -136,7 +136,13 @@ class FireGirlPathway:
             #     self.fuel_load.append([])
             #     for j in range(self.height):
             #         self.fuel_load[i].append(0)
-            self.fuel_load = [[0]*self.height]*self.width
+            #self.fuel_load = [[0]*self.height]*self.width
+
+            self.fuel_load = [None]*self.width
+            self.timber_value = [None]*self.width
+            for i in range(self.height):
+                self.timber_value[i] = [0]*self.height
+                self.fuel_load[i] = [0]*self.height
 
             # ignition probability: the likelihood of there being an important fire on
             #   any given year
@@ -487,12 +493,20 @@ class FireGirlPathway:
     def drawLocation(self):
         #This function chooses a random location on the landscape and returns
         #  it as a two-element list
-        
-        #I'm only allowing fires to start from within the center 43x43 block,
-        #   so that there's plenty of buffer around the edges for big fires to
-        #   burn into.
-        xloc = random.randint(43,86)
-        yloc = random.randint(43,86)
+
+        #lets try it with fires anywhere:
+        #setting a buffer of 2 makes sure that fuelave24 and timberave24 won't fail
+        xloc = random.randint(2,self.width-2)
+        yloc = random.randint(2,self.height-2)
+
+        if self.USE_BUGS:
+            #Original bug: that big buffer turns into a tinder box!                    
+            #I'm only allowing fires to start from within the center 43x43 block,
+            #   so that there's plenty of buffer around the edges for big fires to
+            #   burn into.
+            xloc = random.randint(43,86)
+            yloc = random.randint(43,86)
+
         return [xloc,yloc]
     
     def tempMean(self, date):
@@ -565,8 +579,8 @@ class FireGirlPathway:
         #both timber_value and fuel_load have ranges between 0 and 100
         
         #function signature: 
-        #def FireGirl_DS_alg      (seedValue,      min_val, max_val, roughness=0.5)
-        newgrids = FireGirl_DS_alg(self.ID_number,       0,     120,           0.5)
+        #def FireGirl_DS_alg      (seedValue,      min_val, max_val, roughness=0.5, USE_FUEL_BUG=False)
+        newgrids = FireGirl_DS_alg(self.ID_number,       0,     120,           0.5, self.USE_BUGS)
         
         #assign them to this object's members
         self.timber_value = newgrids[0]
@@ -1045,14 +1059,22 @@ class FireGirlPathway:
         next_ign = 1000
         
         #set up an array to mark which cells have already been burned over
-        burned = [[0]*self.height]*self.width
+        burned = [None]*self.width
+        crown_burned = [None]*self.width
+        for i in range(self.height):
+            burned[i] = [False]*self.height
+            crown_burned[i] = [False]*self.height
+
+        #burned = [[0]*self.height]*self.width
+
         # for i in range(129):
         #     burned.append([])
         #     for j in range(129):
         #         burned[i].append(False)
         
         #set up an array to mark which cells have their crowns' burned
-        crown_burned = [[0]*self.height]*self.width
+        #crown_burned = [[0]*self.height]*self.width
+
         # for i in range(129):
         #     crown_burned.append([])
         #     for j in range(129):
@@ -1113,15 +1135,28 @@ class FireGirlPathway:
             if suppress == True:
                 spreadrate *= self.fire_suppression_rate 
 
-            
+
+            #TODO: FIX THIS HACK
+            #because crownfire is stochaistic as originally implemented and is ALSO effected by policies:
+            # it's changing the random number draw counts, and making otherwise identical pathways with
+            # separate policies to have different weather. This isn't good. So I'm hacking in a deterministic
+            # version of crownfirerisk for now...
+             
+            #original model call
             # Check if the crown will burn (if the spreadrate is > 0)
             # Timber loss is a probabalistic function based on the 
             #   calcCrownFireRisk() function.  This function will return
             #   a probability of crownfire, and we'll roll a uniform
             #   number against it.
-            roll = random.uniform(0,1)
-            if roll < self.calcCrownFireRisk(self.fuel_load[xloc][yloc]):
-                crown_burned[xloc][yloc] = True
+            if self.USE_BUGS:
+                roll = random.uniform(0,1)
+                if roll < self.calcCrownFireRisk(self.fuel_load[xloc][yloc]):
+                    crown_burned[xloc][yloc] = True
+            else:
+                #HACK
+                hack_val = (fuel_ld * 2) + (spreadrate * 2)
+                if hack_val > self.timber_value[xloc][yloc]:
+                    crown_burned[xloc][yloc] = True
 
 
             #if the fire spreadrate of this fire is 0, then don't bother checking
@@ -1147,9 +1182,29 @@ class FireGirlPathway:
             
             dist = 0
             arrival_time = 0
+
+            #setting iteration ranges for this cell's neighbors
+            x_low = xloc-reach
+            x_high = xloc+reach+1
+            y_low = yloc-reach
+            y_high = yloc+reach+1
+             
+            if self.USE_BUGS:
+                #the bug here makes it so that the highest value of x and y are NOT iterated over.
+                # when reach= 1, this means that in the right, and down directions, it was checking
+                # 1 - 1 = 0 cells in those directions.
+                x_high = xloc+reach
+                y_high = yloc+reach
+
+            #checking bounds
+            if (x_low < 0): x_low = 0
+            if (y_low < 0): y_low = 0
+            if (x_high >= self.width): x_high = self.width - 1
+            if (y_high >= self.height): y_high = self.height - 1
+
             
-            for i in range(xloc-reach, xloc+reach):
-                for j in range(yloc-reach, yloc+reach):
+            for i in range(x_low, x_high):
+                for j in range(y_low, y_high):
                     
                     #don't calculate time to the current cell
                     if not (xloc == i and yloc == j):
@@ -1201,8 +1256,8 @@ class FireGirlPathway:
         timber_loss = 0
         cells_burned = 0
         
-        for i in range(129):
-            for j in range(129):
+        for i in range(self.width):
+            for j in range(self.height):
                 if burned[i][j] == True:
                     cells_burned += 1
                                         
@@ -1308,24 +1363,24 @@ class FireGirlPathway:
 
                 # # 1) Apply timber growth equation:
 
-                # #calculate current age
-                # age = math.exp(self.timber_value[i][j] / self.growth_timber_constant)
-                # #and apply the timber value for the new age
-                # old_val = self.timber_value[i][j]
-                # new_val = self.growth_timber_constant * math.log(age + 1)
-                # self.timber_value[i][j] = new_val
+                #calculate current age
+                age = math.exp(self.timber_value[i][j] / self.growth_timber_constant)
+                #and apply the timber value for the new age
+                old_val = self.timber_value[i][j]
+                new_val = self.growth_timber_constant * math.log(age + 1)
+                self.timber_value[i][j] = new_val
 
-                # #and record this growth as part of the year's total growth, but only for
-                # #  the window of interest
-                # if (i >= 43) and (i < 86) and (j >= 43) and (j < 86):
-                #     total_growth += (new_val - old_val)
+                #and record this growth as part of the year's total growth, but only for
+                #  the window of interest
+                if (i >= 43) and (i < 86) and (j >= 43) and (j < 86):
+                    total_growth += (new_val - old_val)
 
 
                 # # 2) Apply fuel accumulation model:
-                # self.fuel_load[i][j] += self.growth_fuel_accumulation
+                self.fuel_load[i][j] += self.growth_fuel_accumulation
 
 
-                self.fuel_load[i][j] = self.getNextTimberValue(self.fuel_load[i][j])
+                #self.fuel_load[i][j] = self.getNextTimberValue(self.fuel_load[i][j])
 
 
 
