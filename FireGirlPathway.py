@@ -35,6 +35,9 @@ class FireGirlPathway:
         #for testing only, a flag for Debug outputs
         self.DEBUG = False
 
+        #for using bugs in their un-solved versions'
+        self.USE_BUGS = False
+
         #Flag: if True, suppress all print statements
         self.SILENT = False
         
@@ -120,19 +123,21 @@ class FireGirlPathway:
             self.fuel_load_history = []
             
             #Creating a rectangular array to hold timber values for each cell
-            self.timber_value = []
-            for i in range(self.width):
-                self.timber_value.append([])
-                for j in range(self.height):
-                    self.timber_value[i].append(0)
+            # self.timber_value = []
+            # for i in range(self.width):
+            #     self.timber_value.append([])
+            #     for j in range(self.height):
+            #         self.timber_value[i].append(0)
+            self.timber_value = [[0]*self.height]*self.width
             
             #(Creating a rectangular array to hold fuel-load values for each cell
-            self.fuel_load = []
-            for i in range(self.width):
-                self.fuel_load.append([])
-                for j in range(self.height):
-                    self.fuel_load[i].append(0)
-            
+            # self.fuel_load = []
+            # for i in range(self.width):
+            #     self.fuel_load.append([])
+            #     for j in range(self.height):
+            #         self.fuel_load[i].append(0)
+            self.fuel_load = [[0]*self.height]*self.width
+
             # ignition probability: the likelihood of there being an important fire on
             #   any given year
             self.ignition_prob = 100
@@ -861,19 +866,15 @@ class FireGirlPathway:
         """
 
         #making arrays to hold the copied information
-        fuel_copy = []
-        timber_copy = []
+        fuel_copy = [[0]*self.height]*self.width
+        timber_copy = [[0]*self.height]*self.width
 
         #copying values
         for i in range(len(self.fuel_load)):
-            #append a new column in each list
-            fuel_copy.append([])
-            timber_copy.append([])
             for j in range(len(self.fuel_load[0])):
-                #add this element to the most recently added column
                 #using +1-1 to ensure copy-by-value instead of copy-by-reference
-                fuel_copy[i].append(self.fuel_load[i][j] + 1.0 - 1.0)
-                timber_copy[i].append(self.timber_value[i][j] + 1.0 - 1.0)
+                fuel_copy[i] = self.fuel_load[i][j] + 1.0 - 1.0
+                timber_copy[i] = self.timber_value[i][j] + 1.0 - 1.0
 
         self.fuel_load_history.append(fuel_copy)
         self.timber_value_history.append(timber_copy)
@@ -1044,18 +1045,18 @@ class FireGirlPathway:
         next_ign = 1000
         
         #set up an array to mark which cells have already been burned over
-        burned = []
-        for i in range(129):
-            burned.append([])
-            for j in range(129):
-                burned[i].append(False)
+        burned = [[0]*self.height]*self.width
+        # for i in range(129):
+        #     burned.append([])
+        #     for j in range(129):
+        #         burned[i].append(False)
         
         #set up an array to mark which cells have their crowns' burned
-        crown_burned = []
-        for i in range(129):
-            crown_burned.append([])
-            for j in range(129):
-                crown_burned[i].append(False)
+        crown_burned = [[0]*self.height]*self.width
+        # for i in range(129):
+        #     crown_burned.append([])
+        #     for j in range(129):
+        #         crown_burned[i].append(False)
                 
         #start the queue loop
         iter_cap = 5000
