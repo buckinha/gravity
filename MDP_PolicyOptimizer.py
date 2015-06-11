@@ -131,6 +131,34 @@ class MDP_PolicyOptimizer:
         
         return return_dict
 
+    def normalize_pathway_values(self, rng=1.0):
+        """Rescales the net-values of the pathways in self.pathway_set to fall between +/-rng"""
+
+        #find the max and min
+        #and find the average
+        val_max = float("-inf")
+        val_min = float("inf")
+        val_sum = 0
+
+        for pw in self.pathway_set:
+            if pw.net_value > val_max: val_max = pw.net_value
+            if pw.net_value < val_min: val_min = pw.net_value
+            val_sum += pw.net_value
+
+        val_avg = val_sum / len(self.pathway_set)
+        norm_mag = rng / (val_max - val_ave)
+
+        #re-scale
+        for pw in self.pathway_set:
+            pw.normalized_value = True 
+            pw.normalized_value_mag = norm_mag
+            pw.normalized_value_avg = val_avg
+
+            pw.net_value = ( pw.net_value - val_avg ) * norm_mag
+
+
+
+
     def calc_pathway_joint_prob(self, pathway, USE_LOG_PROB=False):
         """Calculates the joint probability of events in an MDP_Pathway object
 
