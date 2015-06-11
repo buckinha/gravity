@@ -22,7 +22,7 @@ class MDP_PolicyOptimizer:
 
         
         #Boundaries for what the parameters can be set to during scipy's optimization routine:
-        self.b_bounds = [[-10,10]] * policy_length
+        self.b_bounds = [[-1.0,1.0]] * policy_length
 
         #and set the constant to be able to vary more freely
         self.b_bounds[0] = [-1000.0, 1000.0]
@@ -44,6 +44,9 @@ class MDP_PolicyOptimizer:
         #Flag: Use importance sampling weights (J3)
         self.IMPORTANCE_SAMPLING = True
 
+        #Flag: Normalize Pathway net values
+        self.NORMALIZE_PATHWAY_NET_VALUES = True #(J4)
+
 
         #Flag: Suppress all outputs that originate from this object
         self.SILENT = False
@@ -60,7 +63,7 @@ class MDP_PolicyOptimizer:
     # Optimization Functions #
     ##########################
 
-    def normalize_all_features(self, rng=5.0):
+    def normalize_all_features(self, rng=1.0):
         #This function normalizes each state(feature) variable of each event in each pathway to fall
         #  between its rng and -rng arguments.
 
@@ -146,7 +149,7 @@ class MDP_PolicyOptimizer:
             val_sum += pw.net_value
 
         val_avg = val_sum / len(self.pathway_set)
-        norm_mag = rng / (val_max - val_ave)
+        norm_mag = rng / (val_max - val_avg)
 
         #re-scale
         for pw in self.pathway_set:
@@ -671,6 +674,10 @@ class MDP_PolicyOptimizer:
         
         #normalizing pathways
         self.normalize_all_features()
+
+        #normalizing net values
+        if self.NORMALIZE_PATHWAY_NET_VALUES:
+            self.normalize_pathway_values()
 
         #populate initial weights
         self.calc_pathway_weights()

@@ -1071,7 +1071,7 @@ class FireGirlTrials:
         #return the pathways
         return pathways
 
-    def MDP_standard(self, pathway_count=100, years=100, start_ID=0, policy=None, supp_var_cost=0, supp_fixed_cost=0):
+    def MDP_generate_standard_set(self, pathway_count=100, years=100, start_ID=0, policy=None, supp_var_cost=0, supp_fixed_cost=0):
         """Creates and returns a set of MDP pathways which were each generated with a given policy (default=coin-toss)"""
 
         pathways = [None]*pathway_count

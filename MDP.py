@@ -23,6 +23,12 @@ class MDP_Pathway:
         self.normalization_mags = []
         self.normalization_means = []
 
+        #normalization values for net_value
+        self.normalized_value = False
+        self.normalized_value_mag = 0
+        self.normalized_value_mean = 0
+
+
         self.discount_rate = 1
 
         #to hold the sum of all of this pathway's discounted values
@@ -210,6 +216,9 @@ def convert_firegirl_pathway_to_MDP_pathway(firegirlpathway):
         else:
             event.decision_prob = 1 - event.action_prob
 
+        #and add (well, multiply) this to the joint probability
+        new_MDP_pw.generation_joint_prob *= event.decision_prob
+
         event.rewards = [-1* firegirlpathway.yearly_suppression_costs[i],
                              firegirlpathway.yearly_logging_totals[i]
                         ]
@@ -235,6 +244,7 @@ def convert_firegirl_pathway_to_MDP_pathway(firegirlpathway):
     #this will set MDP_Pathway.generation_policy_parameters and
     #              MDP_Pathway.generation_joint_prob
     new_MDP_pw.set_generation_policy_parameters(firegirlpathway.Policy.b[:])
+
 
 
     #setting selected metadata
