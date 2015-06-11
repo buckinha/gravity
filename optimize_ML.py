@@ -51,6 +51,20 @@ def optimize_ML(starting_policy_filename, objective_fn="J3"):
     #create a second optimizer object 
     opt_holdout = MDP_PolicyOptimizer(len(holdout_pol.b))
     opt_holdout.pathway_set = holdout_set
+    def calc_pathway_average_prob(self, pathway):
+        """Returns the average probability this pathway's actions, given the current policy"""
+        
+        sum_of_probs = 0
+        
+        for ev in pathway.events:
+            #use the current policy to calculate a new probability with the original features
+            sum_of_probs += self.Policy.calc_action_prob(ev)
+        
+        #now that we've summed all the probabilities, divide by the total number of events
+        ave_prob = sum_of_probs / len(pathway.events)
+        
+        return ave_prob
+
     opt_holdout.Policy = holdout_pol
     #populating initial weights
     opt_holdout.calc_pathway_weights()

@@ -1108,31 +1108,42 @@ class FireGirlTrials:
         pol_sa = FireGirlPolicy()
         pol_sa.b = [100,0,0,0,0,0,0,0,0,0,0]
 
-        pathways_lb = self.MDP_standard(pathway_count, years, start_ID, pol_lb, supp_var_cost, supp_fixed_cost)
-        pathways_sa = self.MDP_standard(pathway_count, years, start_ID, pol_sa, supp_var_cost, supp_fixed_cost)
+        pathways_lb = self.MDP_generate_standard_set(pathway_count, years, start_ID, pol_lb, supp_var_cost, supp_fixed_cost)
+        pathways_sa = self.MDP_generate_standard_set(pathway_count, years, start_ID, pol_sa, supp_var_cost, supp_fixed_cost)
 
         #doing six different passes through l_bfgs_b
         opt = MDP_PolicyOptimizer(11)
         opt.pathway_set = pathways_lb[:]
+        opt.normalize_pathway_values()
+
         opt.Policy.b = pol_lb.b[:]
+        print("..starting lb, J3")
         output_lb_J3 = opt.optimize_policy()
         opt.Policy.b = pol_lb.b[:]
         opt.set_obj_fn("J2")
+        print("..starting lb, J2")
         output_lb_J2 = opt.optimize_policy()
         opt.Policy.b = pol_lb.b[:]
+        print("..starting lb, J1")
         opt.set_obj_fn("J1")
         output_lb_J1 = opt.optimize_policy()
 
 
         opt.pathway_set = pathways_sa[:]
+        opt.normalize_pathway_values()
         opt.Policy.b = pol_sa.b[:]
+        print("..starting sa, J3")
         output_sa_J3 = opt.optimize_policy()
         opt.Policy.b = pol_sa.b[:]
         opt.set_obj_fn("J2")
+        print("..starting sa, J2")
         output_sa_J2 = opt.optimize_policy()
         opt.Policy.b = pol_sa.b[:]
         opt.set_obj_fn("J1")
+        print("..starting sa, J1")
         output_sa_J1 = opt.optimize_policy()
+
+        return [output_lb_J1, output_lb_J2, output_lb_J3, output_sa_J1, output_sa_J2, output_sa_J3]
 
 
 
