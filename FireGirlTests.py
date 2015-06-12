@@ -1145,7 +1145,73 @@ class FireGirlTrials:
 
         return [output_lb_J1, output_lb_J2, output_lb_J3, output_sa_J1, output_sa_J2, output_sa_J3]
 
-
+    def MDP_bad_pol(self):
+        """
+        1.	Define two policies pi-bad and pi-good and generate initial trajectories from each of them.
+        2.	Give those trajectories to your policy gradient code along with an initial weight vector that is all zeroes (so that the initial policy is a coin toss policy). 
+        3.	If the gradient search is working correctly, we should see it increase the probability of the pi-good trajectories and decrease the probability of the pi-bad trajectories.
+        """
+        
+        pathway_count = 100
+        years = 100
+        
+        print("..generating pathways with the _good_ policy")
+        pol_good = FireGirlPolicy()
+        #            """CONS, date, date2, temp, wind, timb, timb8, timb24, fuel, fuel8, fuel24"""
+        pol_good.b = [     0,  0.2, -0.02,    1,    1,    0,     0,      1,    0,     0,   -0.6]
+        pw_good = self.MDP_generate_standard_set(pathway_count, years, policy=pol_good, supp_var_cost=300, supp_fixed_cost=300)
+        
+        print("..generating pathways with the _bad_ policy")
+        pol_bad = FireGirlPolicy()
+        #          """CONS, date, date2, temp, wind, timb, timb8, timb24, fuel, fuel8, fuel24"""
+        pol_bad.b = [     0, -0.2,  0.02,   -1,   -1,    0,     0,     -1,    0,     0,    0.6]
+        pw_bad = self.MDP_generate_standard_set(pathway_count, years, policy=pol_bad, supp_var_cost=300, supp_fixed_cost=300)
+        
+        
+        sum_val_good = 0
+        sum_val_bad = 0
+        for i in range(pathway_count):
+            sum_val_good += pw_good[i].net_value
+            sum_val_bad += pw_bad[i].net_value
+ 
+        
+        avg_val_good = sum_val_good / pathway_count
+        avg_val_bad = sum_val_bad / pathway_count
+        print("Average Value of _good_ pathways: " + str(round(avg_val_good)))
+        print("Average Value of _bad_ pathways:  " + str(round(avg_val_bad)))
+        
+        
+        print("")
+        print("..beginning optimization")
+        opt = MDP_PolicyOptimizer(11)
+        opt.pathway_set = pw_good + pw_bad
+        
+        opt.normalize_all_features()
+        opt.normalize_pathway_values()
+        
+        result = opt.optimize_policy()
+        new_b = result[0][1]
+        
+        print("J3.1 Optimization Complete")
+        print("Policy: " + str(new_b))
+        
+        #now calculate the new probabilities
+        probs_good = [None]*pathway_count
+        probs_bad = [None]*pathway_count
+        opt_bad = MDP_PolicyOptimizer(11)
+        opt_good = MDP_PolicyOptimizer(11)
+        opt_bad.pathway_set = pw_bad
+        opt_good.pathway_set = pw_good
+        opt_bad.Policy.b = new_b
+        opt_good.Policy.b = new_b
+        for i in range(pathway_count):
+            probs_good[i] = opt_good.calc_pathway_joint_prob(opt_good.pathway_set[i])
+            probs_bad[i]  =  opt_bad.calc_pathway_joint_prob( opt_bad.pathway_set[i])
+        
+        #now report the average probabilities for comparison
+        print("Average Probabilty under this policy for:")
+        print("Good Pathways: " + str(mean(probs_good)))
+        print("Bad Pathways:  " + str(mean(probs_bad )))
 
 
 #setting up service-style tests. This will activate if you issue: "python FireGirlTests.py" at a command line, but

@@ -1,0 +1,135 @@
+6-12-15
+Running FireGirlTrials.MDP_bad_pol
+
+First run, 10 pathways x 10 years
+Second,    50 pathways x 50 years
+Third,    100 pathways x 100 years
+Suppression costs 300/300
+Feature AND value normalization (J3.1)
+
+Results:
+10x10 and 100x100 both succeeded in weighting the "good" pathways far more heavily than the "bad" ones.
+50x50 failed to find improvements. I don't have a clear sense of why.
+
+
+
+>>> reload(FireGirlTests)
+<module 'FireGirlTests' from 'FireGirlTests.py'>
+>>> trials = FireGirlTests.FireGirlTrials()
+>>> trials.MDP_bad_pol()
+..generating pathways with the _good_ policy
+A very large fire has occured... Pathway: 4  Year: 2  Burn Time: 12.302
+..generating pathways with the _bad_ policy
+Average Value of _good_ pathways: 149513.0
+Average Value of _bad_ pathways:  -59370.0
+
+..beginning optimization
+J3.1 Optimization Complete
+Policy: [-41.09885255  -1.           1.          -1.           1.          -1
+        -1.
+  -1.           1.           1.           1.        ]
+Average Probabilty under this policy for:
+Good Pathways: 0.99004488021
+Bad Pathways:  1e-30
+>>> reload(FireGirlTests)
+<module 'FireGirlTests' from 'FireGirlTests.py'>
+>>> trials = FireGirlTests.FireGirlTrials()
+>>> trials.MDP_bad_pol()
+..generating pathways with the _good_ policy
+A very large fire has occured... Pathway: 0  Year: 13  Burn Time: 9.652
+A very large fire has occured... Pathway: 4  Year: 2  Burn Time: 12.302
+A very large fire has occured... Pathway: 10  Year: 4  Burn Time: 6.941
+A very large fire has occured... Pathway: 11  Year: 20  Burn Time: 11.705
+A very large fire has occured... Pathway: 13  Year: 2  Burn Time: 5.148
+A very large fire has occured... Pathway: 18  Year: 2  Burn Time: 6.62
+A very large fire has occured... Pathway: 18  Year: 30  Burn Time: 6.888
+A very large fire has occured... Pathway: 23  Year: 48  Burn Time: 5.801
+A very large fire has occured... Pathway: 26  Year: 36  Burn Time: 6.404
+A very large fire has occured... Pathway: 38  Year: 49  Burn Time: 6.652
+A very large fire has occured... Pathway: 39  Year: 36  Burn Time: 8.11
+A very large fire has occured... Pathway: 43  Year: 9  Burn Time: 7.097
+..generating pathways with the _bad_ policy
+A very large fire has occured... Pathway: 13  Year: 2  Burn Time: 10.295
+A very large fire has occured... Pathway: 38  Year: 49  Burn Time: 10.287
+Average Value of _good_ pathways: 695320.0
+Average Value of _bad_ pathways:  -1012107.0
+
+..beginning optimization
+J3.1 Optimization Complete
+Policy: [ 0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+Average Probabilty under this policy for:
+Good Pathways: 8.881784197e-16
+Bad Pathways:  8.881784197e-16
+>>> reload(FireGirlTests)
+<module 'FireGirlTests' from 'FireGirlTests.py'>
+>>> trials = FireGirlTests.FireGirlTrials()
+>>> trials.MDP_bad_pol()
+..generating pathways with the _good_ policy
+A very large fire has occured... Pathway: 0  Year: 13  Burn Time: 9.652
+A very large fire has occured... Pathway: 1  Year: 83  Burn Time: 8.854
+A very large fire has occured... Pathway: 3  Year: 83  Burn Time: 7.713
+A very large fire has occured... Pathway: 4  Year: 2  Burn Time: 12.302
+A very large fire has occured... Pathway: 8  Year: 51  Burn Time: 6.684
+A very large fire has occured... Pathway: 10  Year: 4  Burn Time: 6.941
+A very large fire has occured... Pathway: 11  Year: 20  Burn Time: 11.705
+A very large fire has occured... Pathway: 13  Year: 2  Burn Time: 5.148
+A very large fire has occured... Pathway: 14  Year: 72  Burn Time: 6.599
+A very large fire has occured... Pathway: 17  Year: 60  Burn Time: 8.886
+A very large fire has occured... Pathway: 17  Year: 98  Burn Time: 6.197
+A very large fire has occured... Pathway: 18  Year: 2  Burn Time: 6.62
+A very large fire has occured... Pathway: 18  Year: 30  Burn Time: 6.888
+A very large fire has occured... Pathway: 22  Year: 71  Burn Time: 8.123
+A very large fire has occured... Pathway: 23  Year: 48  Burn Time: 5.801
+A very large fire has occured... Pathway: 24  Year: 78  Burn Time: 9.875
+A very large fire has occured... Pathway: 25  Year: 61  Burn Time: 7.464
+A very large fire has occured... Pathway: 26  Year: 36  Burn Time: 6.404
+A very large fire has occured... Pathway: 35  Year: 66  Burn Time: 5.386
+A very large fire has occured... Pathway: 38  Year: 49  Burn Time: 6.652
+A very large fire has occured... Pathway: 38  Year: 76  Burn Time: 6.8
+A very large fire has occured... Pathway: 39  Year: 36  Burn Time: 8.11
+A very large fire has occured... Pathway: 39  Year: 60  Burn Time: 6.776
+A very large fire has occured... Pathway: 42  Year: 65  Burn Time: 8.437
+A very large fire has occured... Pathway: 43  Year: 9  Burn Time: 7.097
+A very large fire has occured... Pathway: 44  Year: 94  Burn Time: 6.152
+A very large fire has occured... Pathway: 46  Year: 70  Burn Time: 7.538
+A very large fire has occured... Pathway: 47  Year: 52  Burn Time: 7.307
+A very large fire has occured... Pathway: 49  Year: 73  Burn Time: 7.585
+A very large fire has occured... Pathway: 50  Year: 4  Burn Time: 7.444
+A very large fire has occured... Pathway: 62  Year: 70  Burn Time: 9.111
+A very large fire has occured... Pathway: 65  Year: 23  Burn Time: 8.242
+A very large fire has occured... Pathway: 67  Year: 10  Burn Time: 8.661
+A very large fire has occured... Pathway: 69  Year: 22  Burn Time: 5.681
+A very large fire has occured... Pathway: 70  Year: 21  Burn Time: 6.605
+A very large fire has occured... Pathway: 70  Year: 35  Burn Time: 6.411
+A very large fire has occured... Pathway: 70  Year: 63  Burn Time: 8.053
+A very large fire has occured... Pathway: 72  Year: 28  Burn Time: 7.571
+A very large fire has occured... Pathway: 73  Year: 26  Burn Time: 7.29
+A very large fire has occured... Pathway: 73  Year: 42  Burn Time: 7.648
+A very large fire has occured... Pathway: 78  Year: 19  Burn Time: 9.05
+A very large fire has occured... Pathway: 81  Year: 95  Burn Time: 6.511
+A very large fire has occured... Pathway: 83  Year: 9  Burn Time: 6.2
+A very large fire has occured... Pathway: 84  Year: 62  Burn Time: 6.047
+A very large fire has occured... Pathway: 84  Year: 96  Burn Time: 7.537
+A very large fire has occured... Pathway: 85  Year: 5  Burn Time: 9.453
+A very large fire has occured... Pathway: 92  Year: 78  Burn Time: 5.801
+A very large fire has occured... Pathway: 93  Year: 32  Burn Time: 6.079
+A very large fire has occured... Pathway: 93  Year: 34  Burn Time: 5.605
+A very large fire has occured... Pathway: 94  Year: 30  Burn Time: 7.073
+A very large fire has occured... Pathway: 94  Year: 59  Burn Time: 8.08
+A very large fire has occured... Pathway: 96  Year: 85  Burn Time: 12.767
+A very large fire has occured... Pathway: 97  Year: 78  Burn Time: 7.437
+..generating pathways with the _bad_ policy
+A very large fire has occured... Pathway: 13  Year: 2  Burn Time: 10.295
+A very large fire has occured... Pathway: 38  Year: 49  Burn Time: 10.287
+A very large fire has occured... Pathway: 65  Year: 23  Burn Time: 15.184
+Average Value of _good_ pathways: 1485678.0
+Average Value of _bad_ pathways:  -1657572.0
+
+..beginning optimization
+J3.1 Optimization Complete
+Policy: [-141.57530117    1.            1.            1.            1.
+ -1.
+   -1.           -1.           -1.           -1.           -1.        ]
+Average Probabilty under this policy for:
+Good Pathways: 0.82344236668
+Bad Pathways:  1.2076e-298
