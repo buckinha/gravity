@@ -1,0 +1,74 @@
+6-17-15
+
+Set One, Pathways 0-499
+500 pathways, 50 years each
+Suppression Cost: 300,300
+Policy: Coin-Toss Policy
+Observations:
+Average pathway value: 4911.322
+J3, with feature and value normalization
+Policy: 
+   CONS,     DATE,   DATE2,     TEMP,    WIND,     TIMB,    TIMB8,   TIMB24,    FUEL,   FUEL8,  FUEL24
+[-1.807, -0.00656, 0.00656, -0.00656, 0.00656, -0.00656, -0.00656, -0.00656, 0.00656, 0.00656, 0.00656]
+
+
+Set Two, Pathwyas 500-999
+500 pathways, 50 years each
+Suppression Cost: 300,300
+Policy: Optimized Policy from Set One
+Observations:
+-Far less "very large fires" warnings
+Average Pathway Value: -1090660
+J3, with feature and value normalization, optimizing starting with CT policy
+Policy: Failed to Find Improvements
+J3, with feature and value normalization, optimizing starting with Set One optimized Policy
+Policy: FConverged to same policy
+   CONS,     DATE,   DATE2,     TEMP,    WIND,     TIMB,    TIMB8,   TIMB24,    FUEL,   FUEL8,  FUEL24
+[-1.807, -0.00656, 0.00656, -0.00656, 0.00656, -0.00656, -0.00656, -0.00656, 0.00656, 0.00656, 0.00656]
+
+
+Adjoining Set One and Two
+   CONS,     DATE,    DATE2,    TEMP,    WIND,    TIMB,    TIMB8,   TIMB24,    FUEL,   FUEL8,  FUEL24
+[-1.359, -0.00136, -0.00136, 0.00136, 0.00136, 0.00136, -0.00136, -0.00136, 0.00136, 0.00136, 0.00136]
+
+
+Set Three, Pathways 1000-1499
+500 pathways, 50 years each
+Suppression Cost: 300,300
+Policy: Optimized Policy from combined sets one and two
+Observations:
+-lots more "very large fires" warnings
+Average Pathway Value: 680167
+
+J3, with feature and value normalization, starting with generating policy
+-Unable to find improvements
+
+
+Adjoining Set Ones, Two, and Three
+J3, with feature and value normalization, starting with Coin-Toss
+-Found an all-one, let-burn policy with all non-constant factors effectively meaningless
+   CONS,     DATE,    DATE2,    TEMP,    WIND,    TIMB,    TIMB8,   TIMB24,    FUEL,   FUEL8,  FUEL24
+[ -1000,       -1,       -1,       1,       1,      -1,       -1,       -1,      -1,      -1,       1]
+
+J3, with feature and value normalization, starting with the generating policy in set 3 (result from optimizing on set 1+2)
+-Found another let-burn policy but with different (irrelevant) constants
+   CONS,     DATE,    DATE2,    TEMP,    WIND,    TIMB,    TIMB8,   TIMB24,    FUEL,   FUEL8,  FUEL24
+[-1000.,       -1,        1,       1,       1,       1,        1,        1,       1,       1,       1]
+
+
+
+
+Since no improvements can be found, test this one against the hand-coded policy
+ML Policy:
+   CONS,     DATE,    DATE2,    TEMP,    WIND,    TIMB,    TIMB8,   TIMB24,    FUEL,   FUEL8,  FUEL24
+[-1.359, -0.00136, -0.00136, 0.00136, 0.00136, 0.00136, -0.00136, -0.00136, 0.00136, 0.00136, 0.00136]
+
+Hand-Coded Policy:
+   CONS,     DATE,    DATE2,    TEMP,    WIND,    TIMB,    TIMB8,   TIMB24,    FUEL,   FUEL8,  FUEL24
+[     0,      0.2,    -0.02,       1,       1,       0,        0,        1,       0,       0,    -0.6]
+
+100 Monte Carlo roll-outs starting at ID=2000
+Average Pathway Values for
+-ML Policy:         1468499
+-Hand-coded Policy: 1470085
+-notes: in terms of large fires reported, the two seemed identical, even though the policies are slightly different.

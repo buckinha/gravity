@@ -1214,6 +1214,48 @@ class FireGirlTrials:
         print("Bad Pathways:  " + str(mean(probs_bad )))
 
 
+    def MDP_two_policy_comparison(self, policy1, policy2, pathway_count=100, years=100, start_ID=0, supp_var_cost=300, supp_fixed_cost=300):
+        """Monte Carlo rollouts of identical pathways using two different policies """
+
+        print("..generating set 1")
+        pathways_1 = self.MDP_generate_standard_set(pathway_count, years, start_ID, policy1, supp_var_cost, supp_fixed_cost)
+        print("..generating set 2")
+        pathways_2 = self.MDP_generate_standard_set(pathway_count, years, start_ID, policy2, supp_var_cost, supp_fixed_cost)
+
+        #in case you want to optimize on them...
+        # opt = MDP_PolicyOptimizer(11)
+        # opt.pathway_set = pathways_1
+        # opt.normalize_all_features()
+        # opt.normalize_pathway_values()
+
+        # opt.Policy.b = policy1.b
+        # print("..starting J3 optimzation of policy 1")
+        # output1 = opt.optimize_policy()
+
+
+        # opt.pathway_set = pathways_2
+        # opt.normalize_all_features()
+        # opt.normalize_pathway_values()
+
+        # opt.Policy.b = policy2.b
+        # print("..starting J3 optimzation of policy 2")
+        # output2 = opt.optimize_policy()
+
+        #get the net values
+        sum1 = 0
+        for pw in pathways_1:
+            sum1+= pw.net_value
+
+        sum2 = 0
+        for pw in pathways_2:
+            sum2 += pw.net_value
+
+        avg1 = sum1 / pathway_count
+        avg2 = sum2 / pathway_count
+
+        return [avg1, avg2]
+
+
 #setting up service-style tests. This will activate if you issue: "python FireGirlTests.py" at a command line, but
 #  will otherwise be ignored
 if __name__ == "__main__":
