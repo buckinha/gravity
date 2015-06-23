@@ -1,0 +1,36 @@
+6-18-15
+
+Set One, Pathways 2000-2499
+500 pathways, 50 years each
+Suppression Cost: 100,100
+Policy: Coin-Toss Policy
+Observations:
+-
+Average pathway value: 437627
+J3, with feature and value normalization
+Policy: 
+   CONS,     DATE,   DATE2,     TEMP,    WIND,     TIMB,    TIMB8,   TIMB24,    FUEL,   FUEL8,  FUEL24
+[-1.182,  0.00470, 0.00470, -0.00470, 0.00470, -0.00470, -0.00470, -0.00470, 0.00470, 0.00470, 0.00470]
+
+
+Set Two, Pathways 2500-2999
+500 pathways, 50 years each
+Suppression Cost: 100,100
+Policy: Optimized Policy from Set One
+Observations:
+- Again, far fewer large fires
+Average Pathway Value: 71530
+
+
+J3, with feature and value normalization, optimizing starting with CT policy
+-failed to find improvements
+J3, with feature and value normalization, optimizing starting with Set One optimized Policy
+Policy: No Improvements
+
+
+Adjoining Set One and Two
+J3, with feature and value normalization, optimizing starting with CT policy
+-No improvements
+J3, with feature and value normalization, optimizing starting with Set One optimized Policy
+-No improvements
+
