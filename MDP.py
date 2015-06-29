@@ -55,6 +55,11 @@ class MDP_Pathway:
 
         self.net_value = value
 
+    def strip_metadata(self):
+
+        self.metadata = None
+
+
 
 class MDP_Event:
     def __init__(self,sequence_index):

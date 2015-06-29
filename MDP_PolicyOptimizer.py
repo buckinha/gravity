@@ -701,7 +701,9 @@ class MDP_PolicyOptimizer:
 
         pkl_file.close()
 
-
+    def strip_nonessential_pathway_data(self):
+        for pw in self.pathway_set:
+            pw.strip_metadata()
 
     def reset_policy(self, policy_length):
         #This function resets the policy to a 50/50 coin-toss
