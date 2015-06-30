@@ -11,7 +11,6 @@ Policy:
    CONS,     DATE,   DATE2,     TEMP,    WIND,     TIMB,    TIMB8,   TIMB24,    FUEL,   FUEL8,  FUEL24
 [-1.807, -0.00656, 0.00656, -0.00656, 0.00656, -0.00656, -0.00656, -0.00656, 0.00656, 0.00656, 0.00656]
 
-
 Set Two, Pathwyas 500-999
 500 pathways, 50 years each
 Suppression Cost: 300,300
@@ -22,7 +21,7 @@ Average Pathway Value: -1090660
 J3, with feature and value normalization, optimizing starting with CT policy
 Policy: Failed to Find Improvements
 J3, with feature and value normalization, optimizing starting with Set One optimized Policy
-Policy: FConverged to same policy
+Policy: Converged to same policy
    CONS,     DATE,   DATE2,     TEMP,    WIND,     TIMB,    TIMB8,   TIMB24,    FUEL,   FUEL8,  FUEL24
 [-1.807, -0.00656, 0.00656, -0.00656, 0.00656, -0.00656, -0.00656, -0.00656, 0.00656, 0.00656, 0.00656]
 

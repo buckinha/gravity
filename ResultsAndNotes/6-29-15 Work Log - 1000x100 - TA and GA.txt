@@ -1,0 +1,272 @@
+Today's Work Log
+
+6-29-15
+Saving 1000 CT pathways with supp_cost=100/100. Doing it in 250 pathway chunks
+
+
+from MDP_PolicyOptimizer import *
+from FireGirlTests import *
+
+opt1 = MDP_PolicyOptimizer(11)
+trials = FireGirlTrials()
+
+pw_set_1 = trials.MDP_generate_standard_set(years=100,pathway_count=250,start_ID=10000,supp_var_cost=100, supp_fixed_cost=100)
+opt1.pathway_set = pw_set_1
+opt1.save_pathways("CT_250x100_supp_100x100_ID_10000.pathways")
+opt1.pathway_set = None
+pw_set_1 = None
+
+pw_set_1 = trials.MDP_generate_standard_set(years=100,pathway_count=250,start_ID=10250,supp_var_cost=100, supp_fixed_cost=100)
+opt1.pathway_set = pw_set_1
+opt1.save_pathways("CT_250x100_supp_100x100_ID_10250.pathways")
+opt1.pathway_set = None
+pw_set_1 = None
+
+pw_set_1 = trials.MDP_generate_standard_set(years=100,pathway_count=250,start_ID=10500,supp_var_cost=100, supp_fixed_cost=100)
+opt1.pathway_set = pw_set_1
+opt1.save_pathways("CT_250x100_supp_100x100_ID_10500.pathways")
+opt1.pathway_set = None
+pw_set_1 = None
+
+pw_set_1 = trials.MDP_generate_standard_set(years=100,pathway_count=250,start_ID=10750,supp_var_cost=100, supp_fixed_cost=100)
+opt1.pathway_set = pw_set_1
+opt1.save_pathways("CT_250x100_supp_100x100_ID_10750.pathways")
+
+#reloaded all four sets and combined as one set in opt1
+
+opt1.normalize_all_features()
+opt1.normalize_pathway_values()
+result1 = opt1.optimize_policy()
+result1
+[[[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], array([-0.4735328 ,  0.00136951,  0.00136951, -0.00136951,  0.00136951,
+        0.00136951,  0.00136951,  0.00136951,  0.00136951,  0.00136951,
+        0.00136951])], [-1.3533618670180658e-13, -102.54383660085473], {'warnflag': 2, 'task': 'ABNORMAL_TERMINATION_IN_LNSRCH', 'grad': array([ 1071.80424521,  -241.7868598 ,  -605.92537319,   -14.1633738 ,
+        -854.43685134,  -584.22822165,  -595.98161755,  -561.85602478,
+        -735.26031155,  -737.76179877,  -720.53244956]), 'nit': 1, 'funcalls': 32}]
+
+
+
+---------------------------------------------------------------------------------------------------------
+>>> from MDP_PolicyOptimizer import *
+>>> opt = MDP_PolicyOptimizer(11)
+>>> opt.load_pathways("CT_500x50_supp_300x300_ID_0.pathways")
+>>> opt.normalize_all_features()
+{'Max Values': [1, 364, 132496, 118.68962624217988, 93.8189253428676, 116.271, 43.576499999999996, 72.19404166666668, 209.32093077916466, 77.23439924949832, 127.36503728542846], 'Min Values': [1, 0, 0, -120.0170893587529, 0.0016328691284868413, 0.357, 0.133875, 0.22312500000000005, 2, 0, 1], 'Ave Values': [1.0, 182.0, 66248.0, -0.6637315582865071, 46.91027910599804, 58.314, 21.8551875, 36.20858333333334, 105.66046538958233, 38.61719962474916, 64.18251864271423], 'Normalization Magnitude': [0.0, 182.0, 66248.0, 119.3533578004664, 46.90864623686956, 57.957, 21.721312499999996, 35.98545833333334, 103.66046538958233, 38.61719962474916, 63.18251864271423]}
+>>> opt.normalize_pathway_values()
+>>> HKB_Heuristics.threshold(opt.calc_obj_fn, [0,0,0,0,0,0,0,0,0,0,0])
+BEGINNING THRESHOLD ACCEPTANCE ALGORITHM
+..new global best: val=33.0, iter=0
+..new global best: val=5.0, iter=3
+..new global best: val=4.0, iter=4
+..new global best: val=-3.0, iter=11
+..new global best: val=-5.0, iter=13
+..new global best: val=-6.0, iter=20
+..new global best: val=-6.0, iter=26
+..new global best: val=-16.0, iter=31
+..new global best: val=-32.0, iter=32
+..new global best: val=-92.0, iter=34
+..new global best: val=-96.0, iter=43
+..new global best: val=-109.0, iter=45
+..new global best: val=-140.0, iter=50
+..new global best: val=-156.0, iter=75
+..new global best: val=-196.0, iter=80
+..new global best: val=-240.0, iter=81
+..new global best: val=-254.0, iter=85
+..new global best: val=-283.0, iter=88
+..new global best: val=-315.0, iter=117
+..new global best: val=-398.0, iter=122
+..new global best: val=-428.0, iter=133
+..new global best: val=-441.0, iter=141
+..new global best: val=-533.0, iter=142
+..new global best: val=-605.0, iter=152
+..new global best: val=-680.0, iter=179
+..new global best: val=-726.0, iter=194
+..new global best: val=-785.0, iter=204
+..new global best: val=-819.0, iter=233
+..new global best: val=-922.0, iter=363
+..new global best: val=-971.0, iter=383
+..new global best: val=-1011.0, iter=507
+..new global best: val=-1042.0, iter=569
+..new global best: val=-1096.0, iter=570
+ITERATIONS COMPLETE
+Initial Value: -0.0  at solution: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Final Value: -1095.649  at solution: [0.07338308013731143, 0.6397893307574114, -0.1244096430126107, -0.021642392414350065, -0.5232743375748945, 0.4656507187761605, 0.9375544791118653, -0.6238710736287085, 0.11604593885861725, 0.9747769736067551, 0.46676436397835963]
+
+
+   CONS    DATE    DATE2     TEMP     WIND    TIMB   TIMB8   TIMB24    FUEL   FUEL8  FUEL24
+[0.0734, 0.6398, -0.1244, -0.0216, -0.5233, 0.4657, 0.9376, -0.6239, 0.1160, 0.9748, 0.4668]
+
+
+
+>>> bounds = [ [-10,10],[-1,1],[-1,1],[-1,1],[-1,1],[-1,1],[-1,1],[-1,1],[-1,1],[-1,1],[-1,1] ]
+>>> HKB_Heuristics.threshold(opt.calc_obj_fn, [0,0,0,0,0,0,0,0,0,0,0], bounds=bounds, iter_cap=600)
+BEGINNING THRESHOLD ACCEPTANCE ALGORITHM
+..new global best: val=103.0, iter=0
+..new global best: val=45.0, iter=1
+..new global best: val=-37.0, iter=2
+..new global best: val=-76.0, iter=3
+..new global best: val=-98.0, iter=5
+..new global best: val=-178.0, iter=8
+..new global best: val=-579.0, iter=12
+..new global best: val=-1081.0, iter=13
+..new global best: val=-1285.0, iter=16
+..new global best: val=-1942.0, iter=17
+..new global best: val=-3326.0, iter=24
+..new global best: val=-3636.0, iter=36
+..new global best: val=-3868.0, iter=66
+..new global best: val=-4463.0, iter=69
+..new global best: val=-4714.0, iter=91
+..new global best: val=-4986.0, iter=126
+..new global best: val=-5318.0, iter=179
+..new global best: val=-5847.0, iter=187
+..new global best: val=-6240.0, iter=229
+..new global best: val=-6623.0, iter=269
+ITERATIONS COMPLETE
+Initial Value: -0.0  at solution: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Final Value: -6622.973  at solution: [0, -0.9284345473207252, -0.8867665285649444, -0.13565929724622783, 0.5690266596133462, -0.7667722012668217, 0.5986846686204166, 0.3917479748210704, 0.7540249246611954, 0.13496989928294445, -0.18735375871677062]
+
+...A very different solution this time...
+   CONS    DATE    DATE2     TEMP     WIND    TIMB   TIMB8   TIMB24    FUEL   FUEL8  FUEL24
+[    0, -0.9284, -0.8867, -0.1357, 0.5690, -0.7668, 0.5987, 0.3917, 0.7540, 0.13497, -0.1874]
+
+
+
+
+
+
+
+>>> HKB_Heuristics.genetic(opt1.calc_obj_fn, 11, b, iter_cap=20)Beginning Continuous Genetic Algorithm
+Best Member of the final generation:
+Value: -0.453170065385
+Solution: [-2.9248207723784243, 1, -0.3383617109221768, 0.43011167570370823, -0.5989512102918013, -0.5828917925178985, 0.6449700280606122, 0.13720830782324547, -0.3309830574284618, -0.9895883295003657, -0.9628301885264944]
+
+>>> opt1.Policy.b = [0,0,0,0,0,0,0,0,0,0,0]
+>>> HKB_Heuristics.threshold(opt1.calc_obj_fn, opt1.Policy.b, iter_cap=200)
+BEGINNING THRESHOLD ACCEPTANCE ALGORITHM
+..new global best: val=28.672, iter=0
+..disimprovement accepted: val=29.158, iter=2
+..new global best: val=28.261, iter=4
+..new global best: val=-27.287, iter=10
+..new global best: val=-72.651, iter=17
+..new global best: val=-134.463, iter=28
+..new global best: val=-145.054, iter=35
+..new global best: val=-153.01, iter=37
+..new global best: val=-170.623, iter=56
+..new global best: val=-203.361, iter=73
+..new global best: val=-211.08, iter=109
+..new global best: val=-218.097, iter=124
+..new global best: val=-227.917, iter=168
+..new global best: val=-235.952, iter=172
+ITERATIONS COMPLETE
+Initial Value: -0.0  at solution: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Final Value: -235.952  at solution: [0, 0.08512673710556462, 0.4245812423172681, 0.09407162333710306, 0, -0.3215143082525709, 0.4184351684375591, -0.036232663714988345, 0, 0.19981238581080651, 0.5913993910532669]
+>>> x0 = [0, 0.08512673710556462, 0.4245812423172681, 0.09407162333710306, 0, -0.3215143082525709, 0.4184351684375591, -0.036232663714988345, 0, 0.19981238581080651, 0.5913993910532669]
+>>> 
+>>> HKB_Heuristics.threshold(opt1.calc_obj_fn, x0, iter_cap=200)BEGINNING THRESHOLD ACCEPTANCE ALGORITHM
+..new global best: val=6.934, iter=0
+..new global best: val=-5.892, iter=1
+..new global best: val=-26.104, iter=2
+..new global best: val=-63.784, iter=4
+..new global best: val=-114.262, iter=5
+..new global best: val=-129.187, iter=13
+..new global best: val=-152.333, iter=14
+..new global best: val=-168.805, iter=16
+..new global best: val=-193.303, iter=24
+..new global best: val=-223.775, iter=32
+ITERATIONS COMPLETE
+Initial Value: -235.952  at solution: [0, 0.08512673710556462, 0.4245812423172681, 0.09407162333710306, 0, -0.3215143082525709, 0.4184351684375591, -0.036232663714988345, 0, 0.19981238581080651, 0.5913993910532669]
+Final Value: -223.775  at solution: [0, 0.5429699039959528, 0.035774860949889575, 0.09407162333710306, 0, -0.3215143082525709, 0.4184351684375591, -0.2389500891118057, 0.7263343466932144, 0.19981238581080651, 0.21487009158248505]
+
+>>> HKB_Heuristics.threshold(opt1.calc_obj_fn,[0,0,0,0,0,0,0,0,0,0,0])
+BEGINNING THRESHOLD ACCEPTANCE ALGORITHM
+..new global best: val=-2.263, iter=0
+..new global best: val=-4.725, iter=2
+..new global best: val=-10.685, iter=3
+..new global best: val=-16.807, iter=4
+..new global best: val=-17.961, iter=6
+..new global best: val=-19.173, iter=8
+..new global best: val=-22.833, iter=14
+..new global best: val=-25.313, iter=20
+..new global best: val=-32.816, iter=21
+..new global best: val=-35.593, iter=22
+..new global best: val=-43.818, iter=24
+..new global best: val=-50.902, iter=29
+..new global best: val=-58.761, iter=30
+..new global best: val=-93.119, iter=32
+..new global best: val=-108.306, iter=34
+..new global best: val=-111.728, iter=40
+..new global best: val=-124.703, iter=41
+..new global best: val=-138.622, iter=61
+..new global best: val=-143.446, iter=65
+..new global best: val=-150.247, iter=67
+..new global best: val=-157.307, iter=69
+..new global best: val=-164.754, iter=70
+..new global best: val=-173.927, iter=78
+..new global best: val=-182.054, iter=83
+..new global best: val=-188.402, iter=96
+..new global best: val=-194.245, iter=107
+..new global best: val=-202.482, iter=151
+..new global best: val=-209.0, iter=502
+ITERATIONS COMPLETE
+Initial Value: -0.0  at solution: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Final Value: -209.0  at solution: [-0.2079525495417751, 0.4481575870403131, 0.14611553452265047, 0.06454658218493392, 0.25543940320127295, 0.22577856761381337, -0.14784395613869455, 0.10548217089964809, 0, 0.10175403221943666, 0.08598922476022816]
+>>> reload(HKB_Heuristics)
+<module 'HKB_Heuristics' from 'HKB_Heuristics.py'>
+>>> HKB_Heuristics.threshold(opt1.calc_obj_fn,[0,0,0,0,0,0,0,0,0,0,0])
+BEGINNING THRESHOLD ACCEPTANCE ALGORITHM
+..new global best: val=2.488, iter=0
+..new global best: val=1.909, iter=1
+..new global best: val=-18.914, iter=2
+..new global best: val=-23.258, iter=4
+..new global best: val=-35.929, iter=12
+..new global best: val=-40.732, iter=13
+..new global best: val=-51.837, iter=15
+..new global best: val=-63.745, iter=21
+..new global best: val=-77.288, iter=22
+..new global best: val=-95.28, iter=26
+..new global best: val=-107.385, iter=27
+..new global best: val=-122.569, iter=28
+..new global best: val=-159.558, iter=38
+..new global best: val=-216.356, iter=57
+..new global best: val=-240.355, iter=178
+ITERATIONS COMPLETE
+Initial Value: -0.0  at solution: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Final Value: -240.355  at solution: [-0.2707765711180199, 0.4069601910986327, 0.16645389628371393, 0, 0.0527204338911811, 0, -0.10593673177391137, 0.14967725611652083, 0.07697295867556282, 0.3479266583464756, 0]
+
+
+
+
+Today's Policies
+TA:
+[
+[-0.2707765711180199, 0.4069601910986327, 0.16645389628371393, 0, 0.0527204338911811, 0, -0.10593673177391137, 0.14967725611652083, 0.07697295867556282, 0.3479266583464756, 0],
+[-0.2079525495417751, 0.4481575870403131, 0.14611553452265047, 0.06454658218493392, 0.25543940320127295, 0.22577856761381337, -0.14784395613869455, 0.10548217089964809, 0, 0.10175403221943666, 0.08598922476022816],
+[0, 0.5429699039959528, 0.035774860949889575, 0.09407162333710306, 0, -0.3215143082525709, 0.4184351684375591, -0.2389500891118057, 0.7263343466932144, 0.19981238581080651, 0.21487009158248505],
+[0, 0.08512673710556462, 0.4245812423172681, 0.09407162333710306, 0, -0.3215143082525709, 0.4184351684375591, -0.036232663714988345, 0, 0.19981238581080651, 0.5913993910532669],
+[    0, -0.9284, -0.8867, -0.1357, 0.5690, -0.7668, 0.5987, 0.3917, 0.7540, 0.13497, -0.1874],
+[0.0734, 0.6398, -0.1244, -0.0216, -0.5233, 0.4657, 0.9376, -0.6239, 0.1160, 0.9748, 0.4668]
+]
+
+GA =
+[
+[-0.25408823598539526, 0.4069601910986327, 0.16645389628371393, 0.06454658218493392, -0.20492878678507304, 0, -0.0893438471443809, 0.14967725611652083, 0.07697295867556282, 0.3479266583464756, 0.5188291393311478]
+]
+
+
+Handcode = [     0,      0.2,    -0.02,       1,       1,       0,        0,        1,       0,       0,    -0.6]
+
+
+
+
+
+
+The same 30 pathways generated under the policy from TA->GA, CT, and Handcoded
+
+Policy from TA->GA
+  417,075
+
+CoinToss
+1,112,647
+
+HandCode
+1,469,093
