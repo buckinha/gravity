@@ -63,6 +63,10 @@ class MDP_PolicyOptimizer:
     # Optimization Functions #
     ##########################
 
+    def normalize_pathways(self):
+        n = self.normalize_all_features()
+        self.normalize_pathway_values()
+
     def normalize_all_features(self, rng=1.0):
         #This function normalizes each state(feature) variable of each event in each pathway to fall
         #  between its rng and -rng arguments.

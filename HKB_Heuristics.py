@@ -2,7 +2,7 @@
 import random
 
 
-def threshold(objfn, x0, bounds=None, iter_cap=1000, tolerance=1.1, MINIMIZING=True):
+def threshold(objfn, x0, bounds=None, iter_cap=1000, tolerance=1.1, MINIMIZING=True, SILENT=False):
     """A Continuous Threshold Acceptance Algorithm
 
     ARGUEMENTS
@@ -46,7 +46,7 @@ def threshold(objfn, x0, bounds=None, iter_cap=1000, tolerance=1.1, MINIMIZING=T
 
 
     #beginning search
-    print("BEGINNING THRESHOLD ACCEPTANCE ALGORITHM")
+    if not SILENT: print("BEGINNING THRESHOLD ACCEPTANCE ALGORITHM")
     for i in range(iter_cap):
 
         #choose an element of x_current to modify
@@ -86,22 +86,29 @@ def threshold(objfn, x0, bounds=None, iter_cap=1000, tolerance=1.1, MINIMIZING=T
                 #the change created a new global best so remember it
                 global_best = objfn_val
                 global_best_solution = x_current[:]
-                print("..new global best: val=" + str(round(global_best,3)) + ", iter=" + str(i))
+                if not SILENT: print("..new global best: val=" + str(round(global_best,3)) + ", iter=" + str(i))
             else:
                 #the change is a disimprovement, but within the tolerance threshold, so allow it but
                 # do not update the global_vest variable
-                print("..disimprovement accepted: val=" + str(round(objfn_val,3)) + ", iter=" + str(i))
+                if not SILENT: print("..disimprovement accepted: val=" + str(round(objfn_val,3)) + ", iter=" + str(i))
                 #pass
 
     #iterations complete
-    print("ITERATIONS COMPLETE")
-    print("Initial Value: " + str(round(initial_val,3)) + "  at solution: " + str(x0))
-    print("Final Value: " + str(round(global_best,3)) + "  at solution: " + str(x_current))
+    if not SILENT: print("ITERATIONS COMPLETE")
+    if not SILENT: print("Initial Value: " + str(round(initial_val,3)) + "  at solution: " + str(x0))
+    if not SILENT: print("Final Value: " + str(round(global_best,3)) + "  at solution: " + str(global_best_solution))
+
+    return global_best_solution
 
 
 def genetic(objfn, vector_length, bounds=None, iter_cap=500, generation_size=10, mutation_rate=0.10, MINIMIZING=True, seeds=None):
     """A Continuous Genetic Algorithm
     """
+
+    #expanding generation size so that all seeds can be used.
+    if seeds:
+        if generation_size < len(seeds):
+            generation_size = len(seeds)
 
     mother_set = [None] * generation_size
     daughter_set = [None] * generation_size

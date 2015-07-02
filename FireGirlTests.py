@@ -6,6 +6,7 @@ import MDP, random
 from MDP_PolicyOptimizer import *
 
 import random
+import HKB_Heuristics
 
 class FireGirlTests:
     #This class is designed to house functions useful in testing and analyzing the behavior
@@ -1071,7 +1072,7 @@ class FireGirlTrials:
         #return the pathways
         return pathways
 
-    def MDP_generate_standard_set(self, pathway_count=100, years=100, start_ID=0, policy=None, supp_var_cost=0, supp_fixed_cost=0):
+    def MDP_generate_standard_set(self, pathway_count=100, years=100, start_ID=0, policy=None, supp_var_cost=300, supp_fixed_cost=300):
         """Creates and returns a set of MDP pathways which were each generated with a given policy (default=coin-toss)"""
 
         pathways = [None]*pathway_count
@@ -1099,6 +1100,37 @@ class FireGirlTrials:
 
         #return the pathways
         return pathways
+
+    def MDP_generate_from_seed_policies(self, seeds, pathway_count_per_seed=20, years=100, start_ID=0, SEQUENCIAL_PATHWAYS=True):
+        """From a list of seed policies, roll out a set of pathways with subsets generated under each seed."""
+
+        combined_set = []
+        #separate start ID for when we use sequencial pathways
+        s_ID = start_ID
+
+        for seed in seeds:
+            pol = FireGirlPolicy()
+            pol.setParams(seed)
+            new_pws = []
+
+            if SEQUENCIAL_PATHWAYS:
+                new_pws = self.MDP_generate_standard_set(pathway_count=pathway_count_per_seed, years=years, start_ID=s_ID, policy=pol)
+            else:
+                new_pws = self.MDP_generate_standard_set(pathway_count=pathway_count_per_seed, years=years, start_ID=start_ID, policy=pol)
+
+            #report the average value of these ones
+            sum1 = 0
+            for pw in new_pws:
+                sum1 += pw.net_value
+            print("..subset average value (" + str(seeds.index(seed)+1) + "/" + str(len(seeds)) + "): " + str(round(sum1/pathway_count_per_seed)))
+
+            #increment start ID in case we're using sequencial pathways
+            s_ID += pathway_count_per_seed
+
+            combined_set = combined_set + new_pws
+
+        return combined_set
+
 
     def MDP_lb_vs_sa(self, pathway_count=100, years=100, start_ID=0, supp_var_cost=0, supp_fixed_cost=0):
         """Creates and runs l_bfgs_b on two sets of identical pathways using either let-burn, and suppress policies """
@@ -1254,6 +1286,114 @@ class FireGirlTrials:
         avg2 = sum2 / pathway_count
 
         return [avg1, avg2]
+
+    def MDP_TA_GA_Sequence(self, pathway_count=100, years=100, start_ID=0, QUICK_TEST=False):
+        #generate standard set
+        print("Generating CT pathways")
+
+        pw_set_CT = []
+        if QUICK_TEST:
+            pw_set_CT = self.MDP_generate_standard_set(10, 10, start_ID, supp_var_cost=300, supp_fixed_cost=300)
+        else:
+            pw_set_CT = self.MDP_generate_standard_set(pathway_count, years, start_ID, supp_var_cost=300, supp_fixed_cost=300)
+
+        opt1 = MDP_PolicyOptimizer(11)
+
+        sum_CT = 0
+        for pw in pw_set_CT:
+            sum_CT += pw.net_value
+        val_CT = sum_CT / len(pw_set_CT)
+        
+        opt1.pathway_set = pw_set_CT
+        opt1.normalize_pathways()
+
+
+        x0=[0,0,0,0,0,0,0,0,0,0,0]
+        b = [None] * 11
+        for i in range(11):
+            b[i] = [-1,1]
+        b[0] = [-10,10]
+
+        TA_reps = 5
+        GA_seeds = [None]*TA_reps
+        print("Starting TA reps")
+        for i in range(TA_reps):
+            print("...TA run " + str(i))
+            if QUICK_TEST:
+                GA_seeds[i] = HKB_Heuristics.threshold(opt1.calc_obj_fn, x0, b, iter_cap=20, tolerance=1.2, SILENT=True)
+            else:
+                GA_seeds[i] = HKB_Heuristics.threshold(opt1.calc_obj_fn, x0, b, iter_cap=400, tolerance=1.2, SILENT=True)
+
+        print("Starting GA")
+        GA_result = None
+        if QUICK_TEST:
+            GA_result = HKB_Heuristics.genetic(opt1.calc_obj_fn, 11, bounds=b, iter_cap=5, seeds=GA_seeds)
+        else:
+            GA_result = HKB_Heuristics.genetic(opt1.calc_obj_fn, 11, bounds=b, iter_cap=50, seeds=GA_seeds)
+
+        print("Generating GA rollouts")
+        pw_set_GA = []
+        pol_GA = FireGirlPolicy()
+        pol_GA.setParams(GA_result)
+        if QUICK_TEST:
+            pw_set_GA = self.MDP_generate_standard_set(10, 10, start_ID, policy=pol_GA, supp_var_cost=300, supp_fixed_cost=300)
+        else:
+            pw_set_GA = self.MDP_generate_standard_set(pathway_count, years, start_ID, policy=pol_GA, supp_var_cost=300, supp_fixed_cost=300)
+
+        sum_GA = 0
+        for pw in pw_set_GA:
+            sum_GA += pw.net_value
+        val_GA = sum_GA / len(pw_set_GA)
+
+        print("Generating Handcode rollouts")
+        pw_set_Handcode = []
+        pol_Handcode = FireGirlPolicy()
+        pol_Handcode.setParams([     0,      0.2,    -0.02,       1,       1,       0,        0,        1,       0,       0,    -0.6])
+        if QUICK_TEST:
+            pw_set_Handcode = self.MDP_generate_standard_set(10, 10, start_ID, policy=pol_Handcode, supp_var_cost=300, supp_fixed_cost=300)
+        else:
+            pw_set_Handcode = self.MDP_generate_standard_set(pathway_count, years, start_ID, policy=pol_Handcode, supp_var_cost=300, supp_fixed_cost=300)
+
+        sum_Handcode = 0
+        for pw in pw_set_Handcode:
+            sum_Handcode += pw.net_value
+        val_Handcode = sum_Handcode / len(pw_set_Handcode)
+
+        print("")
+        print("Trial Complete")
+        print("CT average value: " + str(round(val_CT)))
+        print("GA average value: " + str(round(val_GA)))
+        print("HC average value: " + str(round(val_Handcode)))
+
+    def objective_function_sensitivity_test(self, pathway_set, parameter1, parameter2=None, policy=None, lb=-1, ub=1, increment=0.1):
+        """given a pathway set and (optionally) a starting policy, varies one or two policy parameters and reports obj fn val"""
+        #setting up optimizer
+        opt = MDP_PolicyOptimizer(11)
+        
+        if policy:
+            opt.Policy = policy
+
+        opt.pathway_set = pathway_set
+
+        print("Starting Policy")
+        for i in range(len(opt.Policy.b)):
+            print(str(round(opt.Policy.b[i],2)) + ","),
+        print(" ") #ending line
+
+        count = int(round((ub - lb) / increment)) + 1
+        for i in range(count):
+            p1 = lb + i*increment
+            opt.Policy.b[parameter1] = p1
+            if not parameter2:
+                print("param" + str(parameter1) + ": " + str(p1) + "  value: " + str(round(opt.calc_obj_fn())))
+            else:
+                for j in range(count):
+                    p2 = lb + j*increment
+                    opt.Policy.b[parameter2] = p2
+                    print("param" + str(parameter1) + ": " + str(p1)),
+                    print("  param" + str(parameter2) + ": " + str(p2)),
+                    print("  value: " + str(round(opt.calc_obj_fn())))
+
 
 
 #setting up service-style tests. This will activate if you issue: "python FireGirlTests.py" at a command line, but
