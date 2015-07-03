@@ -1,0 +1,39 @@
+7-2-15
+
+___I___
+Generated 200 pathways under nominal_SA ([1,0,0,...0])
+
+___II___
+TA four times starting from nominal_SA
+TA four times starting from CT
+Rolled out 20 pathways for each of the 8 policies
+Results:
+	The four using nominal_SA TA policies were negative valued
+	The four using CT TA policies were in the 1.4 to 1.5M range (quite good)
+
+___III___
+Generating 50 pathways each under the four CT TA Policies
+Results:
+	Average values from 1.42 to 1.48M (pretty good)
+
+___IV___
+Running TA four times starting from the best TA policy
+Running TA four times from CT
+Rolled out 20 pathways each for the 8 policies
+Results:
+	All 8 pathway sets are negatively valued
+
+___V___
+Combining the rollouts from the 8 policies in II and IV
+Running TA four times from CT
+Rolling out 20 pathways each
+Results:
+	They are all negatively valued
+
+
+Thoughts:
+The normalization step involves setting the good/bad divide somewhere. I'm using the mean. But what if all the pathways are bad? What if they're all good?  If we roll out pathways under a good policy, and all end up having pretty good values, then how do we tell the computer
+to split up from there. It'll have to negatively value SOMETHING... 
+
+
+
