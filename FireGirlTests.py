@@ -1379,6 +1379,7 @@ class FireGirlTrials:
         for i in range(len(opt.Policy.b)):
             print(str(round(opt.Policy.b[i],2)) + ","),
         print(" ") #ending line
+        print("")
 
         count = int(round((ub - lb) / increment)) + 1
         for i in range(count):
@@ -1387,12 +1388,15 @@ class FireGirlTrials:
             if not parameter2:
                 print("param" + str(parameter1) + ": " + str(p1) + "  value: " + str(round(opt.calc_obj_fn())))
             else:
+                print(str(p1)),
                 for j in range(count):
                     p2 = lb + j*increment
                     opt.Policy.b[parameter2] = p2
-                    print("param" + str(parameter1) + ": " + str(p1)),
-                    print("  param" + str(parameter2) + ": " + str(p2)),
-                    print("  value: " + str(round(opt.calc_obj_fn())))
+                    #print("param" + str(parameter1) + ": " + str(p1)),
+                    #print("  param" + str(parameter2) + ": " + str(p2)),
+                    #print("  value: " + str(round(opt.calc_obj_fn())))
+                    print( "," + str(round(opt.calc_obj_fn(),3))),
+                print("")
 
 
 

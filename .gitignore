@@ -1,6 +1,7 @@
 # Hailey's ignored files
 *.fgl
 *.png
+*.pathways
 
 # Sean ignored files
 *.bmp

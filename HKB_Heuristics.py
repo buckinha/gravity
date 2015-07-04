@@ -54,7 +54,7 @@ def threshold(objfn, x0, bounds=None, iter_cap=1000, tolerance=1.1, MINIMIZING=T
 
         #choose a new value for that element
         #new_val = random.uniform(bounds[changing_index][0], bounds[changing_index][1])
-        new_val = random.normalvariate(x_current[changing_index], 0.1)
+        new_val = random.normalvariate(x_current[changing_index], 0.05)
         #checking bounds
         if new_val < bounds[changing_index][0]:new_val = bounds[changing_index][0]
         if new_val > bounds[changing_index][1]:new_val = bounds[changing_index][1]

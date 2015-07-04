@@ -1,0 +1,233 @@
+[
+
+[0, 0, 0.25300388459639245, 0, -0.08224417224270236, 0, 0, 0, 0.03738009137075739, 0, 0],
+
+[0, 0.1705250954061894, 0.13616124434444285, 0.27926873062295815, -0.06570521792806075, 0, 0, 0, 0.0006122313323956413, 0, 0], 
+
+[-0.1391526367215441, -0.28843828770664304, 0.1432357799463546, -0.49990152479932165, -0.3069921869123554, 0, 0, 0.31357432394019524, 0.030693377913037858, 0, 0.08276017167272379],
+
+[0.10346632859569894, 0, 0.2563432882569408, 0.40596939597325055, -0.10248654655947081, 0, 0, 0, 0, 0.007903583269349276, 0.07646319245025386],
+
+[-0.15291978,  0.09842692,  0.10628545, -0.05278724, -0.02401937, -0.0285081 , -0.00328385, -0.02144617, -0.02745478, -0.02829216, -0.02973971], 
+
+[-0.6800437879218958, -0.5574834501873448, 0.27220023970951635, -0.4651474402177273, -1.4813895492434295, -1.0105496644345942, 0.009799828531872709, 1.2176960299879476, 1.0989539492614395, -1.059220673144492, 0.49625394241425413],
+
+[-0.5477820772794585, -0.5407963713150945, 0.27220023970951635, -0.4715838575532883, -1.5312725146287687, -1.112595126372755, 0.18443669321333364, 1.1607485090148344, 1.550567231122131, -2.435671785395969, 1.6281780373216208]
+
+]
+
+
+
+>>> from FireGirlTests import *
+>>> from MDP_PolicyOptimizer import *
+>>> trials = FireGirlTrials()
+>>> pw1 = trials.MDP_generate_standard_set(pathway_count=20, start_ID=0)
+A very large fire has occured... Pathway: 0  Year: 13  Burn Time: 9.62
+A very large fire has occured... Pathway: 3  Year: 50  Burn Time: 8.937
+A very large fire has occured... Pathway: 3  Year: 83  Burn Time: 9.214
+A very large fire has occured... Pathway: 5  Year: 50  Burn Time: 6.953
+A very large fire has occured... Pathway: 10  Year: 4  Burn Time: 6.941
+A very large fire has occured... Pathway: 13  Year: 2  Burn Time: 5.148
+A very large fire has occured... Pathway: 14  Year: 72  Burn Time: 6.345
+A very large fire has occured... Pathway: 18  Year: 30  Burn Time: 7.061
+>>> opt1 = MDP_PolicyOptimizer
+>>> opt1 = MDP_PolicyOptimizer(11)
+>>> opt1.pathway_set = pw1
+>>> opt1.normalize_pathways()
+>>> pw1 = opt1.pathway_set[:]
+>>> J3_result1 = opt1.optimize_policy()
+>>> from HKB_Heuristics import *
+>>> x0 = [0,0,0,0,0,0,0,0,0,0,0]
+>>> opt1.Policy.b=x0
+>>> TA_result1 = threshold(opt1.calc_obj_fn, x0)
+BEGINNING THRESHOLD ACCEPTANCE ALGORITHM
+..new global best: val=-0.143, iter=0
+..new global best: val=-0.248, iter=4
+..new global best: val=-1.946, iter=7
+..new global best: val=-2.144, iter=112
+..new global best: val=-2.376, iter=114
+ITERATIONS COMPLETE
+Initial Value: -0.0  at solution: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Final Value: -2.376  at solution: [0, 0, 0.25300388459639245, 0, -0.08224417224270236, 0, 0, 0, 0.03738009137075739, 0, 0]
+>>> TA_result2 = threshold(opt1.calc_obj_fn, x0)
+BEGINNING THRESHOLD ACCEPTANCE ALGORITHM
+..new global best: val=-0.006, iter=0
+..new global best: val=-1.769, iter=1
+..new global best: val=-1.994, iter=5
+..new global best: val=-2.194, iter=97
+..new global best: val=-2.431, iter=761
+..new global best: val=-2.683, iter=762
+ITERATIONS COMPLETE
+Initial Value: -0.0  at solution: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Final Value: -2.683  at solution: [0, 0.1705250954061894, 0.13616124434444285, 0.27926873062295815, -0.06570521792806075, 0, 0, 0, 0.0006122313323956413, 0, 0]
+>>> TA_result3 = threshold(opt1.calc_obj_fn, x0)
+BEGINNING THRESHOLD ACCEPTANCE ALGORITHM
+..new global best: val=-0.217, iter=0
+..new global best: val=-0.522, iter=2
+..new global best: val=-1.018, iter=6
+..new global best: val=-1.853, iter=33
+..new global best: val=-2.057, iter=44
+..new global best: val=-2.38, iter=200
+..new global best: val=-2.64, iter=338
+..new global best: val=-2.936, iter=407
+..new global best: val=-3.23, iter=518
+..new global best: val=-3.638, iter=520
+..new global best: val=-4.909, iter=564
+..new global best: val=-5.44, iter=572
+..new global best: val=-6.144, iter=579
+..new global best: val=-7.368, iter=602
+..new global best: val=-9.709, iter=623
+..new global best: val=-12.794, iter=627
+..new global best: val=-14.158, iter=686
+..new global best: val=-16.281, iter=705
+..new global best: val=-18.939, iter=711
+ITERATIONS COMPLETE
+Initial Value: -0.0  at solution: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Final Value: -18.939  at solution: [-0.1391526367215441, -0.28843828770664304, 0.1432357799463546, -0.49990152479932165, -0.3069921869123554, 0, 0, 0.31357432394019524, 0.030693377913037858, 0, 0.08276017167272379]
+>>> TA_result4 = threshold(opt1.calc_obj_fn, x0)
+BEGINNING THRESHOLD ACCEPTANCE ALGORITHM
+..new global best: val=4.316, iter=0
+..new global best: val=3.92, iter=2
+..new global best: val=3.261, iter=3
+..new global best: val=3.076, iter=4
+..new global best: val=1.604, iter=5
+..new global best: val=-2.015, iter=6
+..new global best: val=-2.342, iter=121
+..new global best: val=-2.722, iter=128
+ITERATIONS COMPLETE
+Initial Value: -0.0  at solution: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+Final Value: -2.722  at solution: [0.10346632859569894, 0, 0.2563432882569408, 0.40596939597325055, -0.10248654655947081, 0, 0, 0, 0, 0.007903583269349276, 0.07646319245025386]
+>>> TA_result3
+[-0.1391526367215441, -0.28843828770664304, 0.1432357799463546, -0.49990152479932165, -0.3069921869123554, 0, 0, 0.31357432394019524, 0.030693377913037858, 0, 0.08276017167272379]
+>>> seeds = [TA_result1, TA_result2, TA_result3, TA_result4, J3_result1[0][1]]
+>>> seeds
+[[0, 0, 0.25300388459639245, 0, -0.08224417224270236, 0, 0, 0, 0.03738009137075739, 0, 0], [0, 0.1705250954061894, 0.13616124434444285, 0.27926873062295815, -0.06570521792806075, 0, 0, 0, 0.0006122313323956413, 0, 0], [-0.1391526367215441, -0.28843828770664304, 0.1432357799463546, -0.49990152479932165, -0.3069921869123554, 0, 0, 0.31357432394019524, 0.030693377913037858, 0, 0.08276017167272379], [0.10346632859569894, 0, 0.2563432882569408, 0.40596939597325055, -0.10248654655947081, 0, 0, 0, 0, 0.007903583269349276, 0.07646319245025386], array([-0.15291978,  0.09842692,  0.10628545, -0.05278724, -0.02401937,
+       -0.0285081 , -0.00328385, -0.02144617, -0.02745478, -0.02829216,
+       -0.02973971])]
+>>> GA_result1 = genetic(opt1.calc_obj_fn, 11, seeds=seeds)
+Beginning Continuous Genetic Algorithm
+...20%
+...40%
+...60%
+...80%
+...100%
+..CGA complete
+Best Member of the final generation:
+Value: -224.876075736
+Solution: [-0.6800437879218958, -0.5574834501873448, 0.27220023970951635, -0.4651474402177273, -1.4813895492434295, -1.0105496644345942, 0.009799828531872709, 1.2176960299879476, 1.0989539492614395, -1.059220673144492, 0.49625394241425413]
+>>> GA_result1
+[-0.6800437879218958, -0.5574834501873448, 0.27220023970951635, -0.4651474402177273, -1.4813895492434295, -1.0105496644345942, 0.009799828531872709, 1.2176960299879476, 1.0989539492614395, -1.059220673144492, 0.49625394241425413]
+>>> seeds.append(GA_result1)
+>>> GA_result2 = genetic(opt1.calc_obj_fn, 11, seeds=seeds)
+Beginning Continuous Genetic Algorithm
+...20%
+...40%
+...60%
+...80%
+...100%
+..CGA complete
+Best Member of the final generation:
+Value: -356.762538927
+Solution: [-0.5477820772794585, -0.5407963713150945, 0.27220023970951635, -0.4715838575532883, -1.5312725146287687, -1.112595126372755, 0.18443669321333364, 1.1607485090148344, 1.550567231122131, -2.435671785395969, 1.6281780373216208]
+>>> seeds.append(GA_result2)
+>>> seeds
+[[0, 0, 0.25300388459639245, 0, -0.08224417224270236, 0, 0, 0, 0.03738009137075739, 0, 0], [0, 0.1705250954061894, 0.13616124434444285, 0.27926873062295815, -0.06570521792806075, 0, 0, 0, 0.0006122313323956413, 0, 0], [-0.1391526367215441, -0.28843828770664304, 0.1432357799463546, -0.49990152479932165, -0.3069921869123554, 0, 0, 0.31357432394019524, 0.030693377913037858, 0, 0.08276017167272379], [0.10346632859569894, 0, 0.2563432882569408, 0.40596939597325055, -0.10248654655947081, 0, 0, 0, 0, 0.007903583269349276, 0.07646319245025386], array([-0.15291978,  0.09842692,  0.10628545, -0.05278724, -0.02401937,
+       -0.0285081 , -0.00328385, -0.02144617, -0.02745478, -0.02829216,
+       -0.02973971]), [-0.6800437879218958, -0.5574834501873448, 0.27220023970951635, -0.4651474402177273, -1.4813895492434295, -1.0105496644345942, 0.009799828531872709, 1.2176960299879476, 1.0989539492614395, -1.059220673144492, 0.49625394241425413], [-0.5477820772794585, -0.5407963713150945, 0.27220023970951635, -0.4715838575532883, -1.5312725146287687, -1.112595126372755, 0.18443669321333364, 1.1607485090148344, 1.550567231122131, -2.435671785395969, 1.6281780373216208]]
+
+
+
+
+
+new seeds after another round of GA and TA and J3
+[[0, 0, 0.25300388459639245, 0, -0.08224417224270236, 0, 0, 0, 0.03738009137075739, 0, 0], [0, 0.1705250954061894, 0.13616124434444285, 0.27926873062295815, -0.06570521792806075, 0, 0, 0, 0.0006122313323956413, 0, 0], [-0.1391526367215441, -0.28843828770664304, 0.1432357799463546, -0.49990152479932165, -0.3069921869123554, 0, 0, 0.31357432394019524, 0.030693377913037858, 0, 0.08276017167272379], [0.10346632859569894, 0, 0.2563432882569408, 0.40596939597325055, -0.10248654655947081, 0, 0, 0, 0, 0.007903583269349276, 0.07646319245025386], [-0.15291978, 0.09842692, 0.10628545, -0.05278724, -0.02401937, -0.0285081, -0.00328385, -0.02144617, -0.02745478, -0.02829216, -0.02973971], [-0.6800437879218958, -0.5574834501873448, 0.27220023970951635, -0.4651474402177273, -1.4813895492434295, -1.0105496644345942, 0.009799828531872709, 1.2176960299879476, 1.0989539492614395, -1.059220673144492, 0.49625394241425413], [-0.5477820772794585, -0.5407963713150945, 0.27220023970951635, -0.4715838575532883, -1.5312725146287687, -1.112595126372755, 0.18443669321333364, 1.1607485090148344, 1.550567231122131, -2.435671785395969, 1.6281780373216208], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1.0, 0.6491288832207847, -1.0, -0.20936705010226953, -0.9934532069942772, 0.7716349479498349, 0.21678250713131567, 0.8158792944576649, -0.9438490831539348, -0.9788779251429388, -0.4630809925204243], [1.0, 0.20996729692861074, -0.9862321666085972, -0.3128784862175976, -1.0, 0.6239797483988059, 0.25428174754698984, 0.33816737066845126, -0.4782159121959004, -0.9404680930478686, -0.3176458473566668], [0.9911860098379786, 0.4571347097431205, -0.9870720419982153, -0.4243217573181263, -1.0, 0.35650214194928115, 0.3902887184419339, 0.4427701605827472, -0.07476853311553269, -1.0, -0.6269872822889277], [10, 3.2470527692687625, -3.3998848103202866, 1.283424829807781, -9.798287873542012, 3.250435948758411, 1.2863978794261504, 3.3245494775972584, 2.1937583971731924, 1.9476755721885182, 2.096898869746665]]
+
+
+>>> TA3_result1
+[-1.0, -0.10565797009033917, 0.8622803864360546, 0, 0.9833401028980634, 0.5965830514562208, 0.43677622088720003, 0.3827665589907653, 1.0, 1.0, 1.0]
+>>> TA3_result2
+[-1.0, -0.1414825905703609, 0.6641214143618598, -0.1122144796876929, 1.0, 0.516037466624981, 0.1269490382175978, 0.3550014191209864, 1.0, 0.9653588255675982, 1.0]
+>>> TA3_result3
+[-1.0, -0.4115964395559222, 0.7535201801894623, -0.22322137219101093, 1.0, 0.07663497121856794, 0.10235167434512954, 0.6581581835339134, 0.9728751100850684, 0.9424792230331562, 0.9562029745176611]
+
+Handcode = [     0,      0.2,    -0.02,       1,       1,       0,        0,        1,       0,       0,    -0.6]
+
+>>> seeds2 = [x0, TA2_result1, TA2_result2, TA2_result3, GA2_result1, TA3_result1, TA3_result2, TA3_result3, Handcode]
+>>> pw4 = trials.MDP_generate_from_seed_policies(seeds2, start_ID=400)
+
+>>> pw4 = trials.MDP_generate_from_seed_policies(seeds2, start_ID=400)A very large fire has occured... Pathway: 401  Year: 30  Burn Time: 4.677
+
+### COIN-TOSS ###
+A very large fire has occured... Pathway: 404  Year: 28  Burn Time: 5.713
+A very large fire has occured... Pathway: 408  Year: 7  Burn Time: 7.937
+A very large fire has occured... Pathway: 414  Year: 59  Burn Time: 7.444
+A very large fire has occured... Pathway: 415  Year: 37  Burn Time: 7.183
+A very large fire has occured... Pathway: 419  Year: 18  Burn Time: 7.332
+..subset average value (0/9): 234246.0
+
+### TA Round2 - 1 ###
+A very large fire has occured... Pathway: 423  Year: 26  Burn Time: 7.497
+A very large fire has occured... Pathway: 423  Year: 40  Burn Time: 7.373
+A very large fire has occured... Pathway: 425  Year: 28  Burn Time: 8.081
+A very large fire has occured... Pathway: 428  Year: 52  Burn Time: 6.96
+A very large fire has occured... Pathway: 428  Year: 90  Burn Time: 9.823
+A very large fire has occured... Pathway: 429  Year: 4  Burn Time: 6.054
+A very large fire has occured... Pathway: 434  Year: 51  Burn Time: 7.205
+A very large fire has occured... Pathway: 436  Year: 26  Burn Time: 6.876
+..subset average value (1/9): 1489457.0
+
+### TA Round2 - 2 ###
+A very large fire has occured... Pathway: 444  Year: 84  Burn Time: 9.435
+A very large fire has occured... Pathway: 447  Year: 51  Burn Time: 7.111
+A very large fire has occured... Pathway: 453  Year: 74  Burn Time: 7.417
+A very large fire has occured... Pathway: 454  Year: 19  Burn Time: 5.005
+A very large fire has occured... Pathway: 455  Year: 3  Burn Time: 14.796
+A very large fire has occured... Pathway: 458  Year: 39  Burn Time: 8.767
+..subset average value (2/9): 1490321.0
+
+### TA Round2 - 3 ###
+A very large fire has occured... Pathway: 460  Year: 0  Burn Time: 7.214
+A very large fire has occured... Pathway: 466  Year: 40  Burn Time: 6.799
+A very large fire has occured... Pathway: 467  Year: 38  Burn Time: 8.511
+A very large fire has occured... Pathway: 468  Year: 75  Burn Time: 7.374
+A very large fire has occured... Pathway: 469  Year: 99  Burn Time: 5.803
+A very large fire has occured... Pathway: 474  Year: 53  Burn Time: 6.041
+..subset average value (3/9): 1537473.0
+
+### GA Round2 ###
+A very large fire has occured... Pathway: 481  Year: 38  Burn Time: 6.985
+A very large fire has occured... Pathway: 485  Year: 90  Burn Time: 6.326
+A very large fire has occured... Pathway: 488  Year: 47  Burn Time: 9.55
+A very large fire has occured... Pathway: 489  Year: 55  Burn Time: 7.974
+A very large fire has occured... Pathway: 490  Year: 15  Burn Time: 13.562
+A very large fire has occured... Pathway: 492  Year: 51  Burn Time: 4.99
+A very large fire has occured... Pathway: 494  Year: 15  Burn Time: 5.78
+A very large fire has occured... Pathway: 496  Year: 45  Burn Time: 7.97
+A very large fire has occured... Pathway: 498  Year: 24  Burn Time: 6.361
+A very large fire has occured... Pathway: 499  Year: 8  Burn Time: 8.459
+..subset average value (4/9): 1517892.0
+
+### TA Round3 - 1 ###
+A very large fire has occured... Pathway: 519  Year: 39  Burn Time: 16.573
+..subset average value (5/9): -1747935.0
+
+### TA Round3 - 2 ###
+A very large fire has occured... Pathway: 535  Year: 33  Burn Time: 11.529
+..subset average value (6/9): -1642914.0
+
+### TA Round3 - 3 ###
+..subset average value (7/9): -1660763.0
+
+### Handcode ###
+A very large fire has occured... Pathway: 560  Year: 31  Burn Time: 8.702
+A very large fire has occured... Pathway: 564  Year: 10  Burn Time: 5.474
+A very large fire has occured... Pathway: 564  Year: 51  Burn Time: 7.27
+A very large fire has occured... Pathway: 566  Year: 39  Burn Time: 9.035
+A very large fire has occured... Pathway: 567  Year: 39  Burn Time: 5.199
+A very large fire has occured... Pathway: 569  Year: 32  Burn Time: 10.968
+A very large fire has occured... Pathway: 569  Year: 64  Burn Time: 5.152
+A very large fire has occured... Pathway: 569  Year: 97  Burn Time: 8.056
+A very large fire has occured... Pathway: 573  Year: 93  Burn Time: 8.198
+A very large fire has occured... Pathway: 578  Year: 96  Burn Time: 7.901
+A very large fire has occured... Pathway: 579  Year: 28  Burn Time: 6.146
+..subset average value (8/9): 1415390.0
