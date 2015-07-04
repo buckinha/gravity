@@ -1741,18 +1741,18 @@ class FireGirlPathway:
         else:
             print("no ignition???")
 
-            print firerecord_new.feature_labels 
-            print firerecord_new.features
-            print firerecord_new.outcome_labels 
-            print firerecord_new.outcomes 
+            print (firerecord_new.feature_labels) 
+            print (firerecord_new.features)
+            print (firerecord_new.outcome_labels) 
+            print (firerecord_new.outcomes) 
             print("prob: "),
-            print firerecord_new.policy_prob  
+            print (firerecord_new.policy_prob)  
             print("choice: "),
-            print firerecord_new.policy_choice  
+            print (firerecord_new.policy_choice)  
             print("year: "),
-            print firerecord_new.year 
+            print (firerecord_new.year) 
             print("burn time: "),
-            print firerecord_new.burn_time
+            print (firerecord_new.burn_time)
 
 
         #Finally, advance the year by one.
