@@ -18,6 +18,10 @@ class MDP_Pathway:
         self.generation_policy_parameters = [1] * policy_length
         self.generation_joint_prob = 1
 
+        #other cumulative measures
+        self.actions_0_taken = 0
+        self.actions_1_taken = 0
+
         #normalization values, in case original values ever want to be re-calculated
         self.normalized = False
         self.normalization_mags = []
@@ -218,8 +222,10 @@ def convert_firegirl_pathway_to_MDP_pathway(firegirlpathway):
         event.action_prob = firegirlpathway.ignition_events[i].policy_prob
         if event.action:
             event.decision_prob = event.action_prob
+            new_MDP_pw.actions_1_taken += 1
         else:
             event.decision_prob = 1 - event.action_prob
+            new_MDP_pw.actions_0_taken += 1
 
         #and add (well, multiply) this to the joint probability
         new_MDP_pw.generation_joint_prob *= event.decision_prob
