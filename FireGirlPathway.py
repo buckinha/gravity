@@ -238,7 +238,7 @@ class FireGirlPathway:
             self.fire_average_end_day = 2
 
             #How much does suppression reduce the fire spread rate:
-            self.fire_suppression_rate = 0.5
+            self.fire_suppression_rate = 0.05
 
             #how much does it cost to suppress a fire?
             self.fire_suppression_cost_per_cell = 400 #first runs were 10
