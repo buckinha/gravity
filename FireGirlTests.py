@@ -1101,31 +1101,40 @@ class FireGirlTrials:
         #return the pathways
         return pathways
 
-    def MDP_generate_from_seed_policies(self, seeds, pathway_count_per_seed=20, years=100, start_ID=0, SEQUENCIAL_PATHWAYS=True):
+    def MDP_generate_from_seed_policies(self, seeds, pathway_count_per_seed=20, years=100, start_ID=0, supp_var_cost=50, supp_fixed_cost=50, SEQUENCIAL_PATHWAYS=True):
         """From a list of seed policies, roll out a set of pathways with subsets generated under each seed."""
 
         combined_set = []
         #separate start ID for when we use sequencial pathways
         s_ID = start_ID
 
+        counter=1
+
         for seed in seeds:
             pol = FireGirlPolicy()
+            if seed == 'CT':
+                seed=[0,0,0,0,0,0,0,0,0,0,0]
+            elif seed == 'LB':
+                seed=[-10,0,0,0,0,0,0,0,0,0,0]
+            elif seed == 'SA':
+                seed=[10,0,0,0,0,0,0,0,0,0,0]
             pol.setParams(seed)
             new_pws = []
 
             if SEQUENCIAL_PATHWAYS:
-                new_pws = self.MDP_generate_standard_set(pathway_count=pathway_count_per_seed, years=years, start_ID=s_ID, policy=pol)
+                new_pws = self.MDP_generate_standard_set(pathway_count=pathway_count_per_seed, years=years, start_ID=s_ID, policy=pol, supp_var_cost=supp_var_cost, supp_fixed_cost=supp_fixed_cost)
             else:
-                new_pws = self.MDP_generate_standard_set(pathway_count=pathway_count_per_seed, years=years, start_ID=start_ID, policy=pol)
+                new_pws = self.MDP_generate_standard_set(pathway_count=pathway_count_per_seed, years=years, start_ID=start_ID, policy=pol, supp_var_cost=supp_var_cost, supp_fixed_cost=supp_fixed_cost)
 
             #report the average value of these ones
             sum1 = 0
             for pw in new_pws:
                 sum1 += pw.net_value
-            print("..subset average value (" + str(seeds.index(seed)+1) + "/" + str(len(seeds)) + "): " + str(round(sum1/pathway_count_per_seed)))
+            print("..subset average value (" + str(counter) + "/" + str(len(seeds)) + "): " + str(round(sum1/pathway_count_per_seed)))
 
             #increment start ID in case we're using sequencial pathways
             s_ID += pathway_count_per_seed
+            counter += 1
 
             combined_set = combined_set + new_pws
 

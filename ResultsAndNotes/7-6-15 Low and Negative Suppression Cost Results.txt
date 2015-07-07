@@ -1,0 +1,375 @@
+7-6-15
+
+import FireGirlTests
+import numpy
+import random
+import HKB_Heuristics
+from MDP_PolicyOptimizer import *
+trials = FireGirlTests.FireGirlTrials()
+bounds = [None] * 11
+for i in range(11):
+    bounds[i] = [-1,1]
+bounds[0] = [-10,10]
+x0=[0,0,0,0,0,0,0,0,0,0,0]
+
+___ I ___
+Suppression Cost (50,0)
+Generating 150 pathways
+Get several TA policies
+rollout 20 each and use the best one 
+
+pw0 = trials.MDP_generate_standard_set(pathway_count=150, years=100, start_ID=1100, supp_var_cost=50, supp_fixed_cost=0)
+
+opt0 = MDP_PolicyOptimizer(11)
+opt0.pathway_set = pw0
+opt0.save_pathways("7-6-15_I.pathways")
+opt0.normalize_pathways()
+
+TA1 = HKB_Heuristics.threshold(objfn=opt0.calc_obj_fn, x0=x0, bounds=bounds, iter_cap=500)
+TA2 = HKB_Heuristics.threshold(objfn=opt0.calc_obj_fn, x0=x0, bounds=bounds, iter_cap=500)
+TA3 = HKB_Heuristics.threshold(objfn=opt0.calc_obj_fn, x0=x0, bounds=bounds, iter_cap=500)
+TA4 = HKB_Heuristics.threshold(objfn=opt0.calc_obj_fn, x0=x0, bounds=bounds, iter_cap=500)
+
+TA_seeds = [ TA1, TA2, TA3, TA4 ]
+
+pw1 = trials.MDP_generate_from_seed_policies(TA_seeds, pathway_count_per_seed=20, years=100, start_ID=1300, supp_var_cost=50, supp_fixed_cost=0, SEQUENCIAL_PATHWAYS=False)
+
+SELECTED OUTPUTS:
+Final Value: -42.295
+Final Value: -39.516
+Final Value: -43.614
+Final Value: -41.538
+..subset average value (1/4): 1012070.0
+..subset average value (2/4): 1012070.0
+..subset average value (3/4): 1012070.0
+..subset average value (4/4): 1012070.0
+>>> TA_seeds
+[
+[-0.08172,    0,      0.21780,  -0.4260,   0.06624, -0.11017, 0.0021463,  0,       0,        0.09950, 0], 
+[-0.18965, -0.07683,  0.21971,  -0.407427,  0,         0,     -0.0898968, 0,       0,     -0.0704685, 0], 
+[     0, 0.0786706, 0.1662763, -0.584584, 0.175488, -0.06260, -0.04399, 0.01620, 0.09850, 0.038456, -0.07196]
+[-0.08519,      0,     0.2762, -0.5381,     0,      -0.06442, 0.050278, -0.011287, 0,     0.054781,    0]]
+
+Notes: 
+-So despite being different policies, the produced identical decision sequences
+-1 and 4 are most similar... 3 is most different
+-I'll continue using both 1 and 3 
+
+
+___ II ___
+
+Get 20 each policies from the following seeds and get all the stats
+
+seeds = ['CT', 'SA', 'LB', TA1, TA3]
+
+pw2 = trials.MDP_generate_from_seed_policies(seeds, pathway_count_per_seed=30, years=100, start_ID=1500, supp_var_cost=50, supp_fixed_cost=0, SEQUENCIAL_PATHWAYS=False)
+
+Selected Output
+..subset average value (1/5): 1367616.0  <- CT
+..subset average value (2/5): 1024479.0  <- SA
+..subset average value (3/5): 1500525.0  <- LB
+..subset average value (4/5): 1024479.0  <- TA1
+..subset average value (5/5): 1024479.0  <- TA3
+
+
+pw2_CT = pw2[0:30]
+pw2_SA = pw2[30:60]
+pw2_LB = pw2[60:90]
+pw2_TA1 = pw2[90:120]
+pw2_TA3 = pw2[120:150]
+
+print("Coin Toss Results")
+values=[]
+supp_decisions = []
+for pw in pw2_CT:
+  values.append(pw.net_value)
+  supp_decisions.append(pw.actions_1_taken)
+print("Pathway Values...")
+print("  ave: " + str(round(numpy.mean(values))))
+print("  std: " + str(round(numpy.std(values))))
+print("  min: " + str(round(numpy.min(values))))
+print("  max: " + str(round(numpy.max(values))))
+print("Pathway Suppress Decisions...")
+print("  ave:" + str(round(numpy.mean(supp_decisions))))
+print("  std: " + str(round(numpy.std(supp_decisions))))
+print("  min: " + str(round(numpy.min(supp_decisions))))
+print("  max: " + str(round(numpy.max(supp_decisions))))
+print("RAW PATHWAY VALUES:")
+print(values)
+print("RAW SUPPRESS DECISIONS:")
+print(supp_decisions)
+
+
+Coin Toss Results
+Pathway Values...
+  ave: 1367616.0
+  std: 138218.0
+  min: 1002468.0
+  max: 1564288.0
+Pathway Suppress Decisions...
+  ave: 51.0
+  std: 4.0
+  min: 41.0
+  max: 60.0
+RAW PATHWAY VALUES:
+[1329359.0, 1259509.0, 1222763.0, 1398186.0, 1478972.0, 1512119.0, 1483120.0, 1564288.0, 1093464.0, 1372312.0, 1521324.0, 1352856.0, 1261337.0, 1555856.0, 1200461.0, 1359005.0, 1502678.0, 1371276.0, 1253215.0, 1414625.0, 1336372.0, 1467702.0, 1002468.0, 1411822.0, 1277626.0, 1548209.0, 1445937.0, 1523901.0, 1285467.0, 1222244.0]
+RAW SUPPRESS DECISIONS:
+[53, 48, 50, 55, 60, 49, 50, 51, 54, 54, 48, 55, 50, 56, 53, 51, 50, 48, 53, 48, 58, 41, 50, 43, 51, 44, 48, 46, 47, 53]
+
+
+print("SUPPRESS ALL Results")
+values=[]
+supp_decisions = []
+for pw in pw2_SA:
+  values.append(pw.net_value)
+  supp_decisions.append(pw.actions_1_taken)
+print("Pathway Values...")
+print("  ave: " + str(round(numpy.mean(values))))
+print("  std: " + str(round(numpy.std(values))))
+print("  min: " + str(round(numpy.min(values))))
+print("  max: " + str(round(numpy.max(values))))
+print("Pathway Suppress Decisions...")
+print("  ave:" + str(round(numpy.mean(supp_decisions))))
+print("  std: " + str(round(numpy.std(supp_decisions))))
+print("  min: " + str(round(numpy.min(supp_decisions))))
+print("  max: " + str(round(numpy.max(supp_decisions))))
+print("RAW PATHWAY VALUES:")
+print(values)
+print("RAW SUPPRESS DECISIONS:")
+print(supp_decisions)
+
+
+SUPPRESS ALL Results
+Pathway Values...
+  ave: 1024479.0
+  std: 159629.0
+  min: 627730.0
+  max: 1234605.0
+Pathway Suppress Decisions...
+  ave:100.0
+  std: 0.0
+  min: 99.0
+  max: 100.0
+RAW PATHWAY VALUES:
+[1115825.0, 880064.0, 942104.0, 1187831.0, 1050123.0, 1222721.0, 967142.0, 1202759.0, 635707.0, 963524.0, 1126141.0, 936784.0, 760874.0, 1233912.0, 1157988.0, 1002227.0, 1112064.0, 1001157.0, 918429.0, 1100469.0, 1159685.0, 1091948.0, 627730.0, 1189830.0, 894228.0, 1234605.0, 1003253.0, 1118340.0, 887495.0, 1009409.0]
+RAW SUPPRESS DECISIONS:
+[100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 99, 100, 100, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
+
+
+
+print("LET BURN Results")
+values=[]
+supp_decisions = []
+for pw in pw2_LB:
+  values.append(pw.net_value)
+  supp_decisions.append(pw.actions_1_taken)
+print("Pathway Values...")
+print("  ave: " + str(round(numpy.mean(values))))
+print("  std: " + str(round(numpy.std(values))))
+print("  min: " + str(round(numpy.min(values))))
+print("  max: " + str(round(numpy.max(values))))
+print("Pathway Suppress Decisions...")
+print("  ave:" + str(round(numpy.mean(supp_decisions))))
+print("  std: " + str(round(numpy.std(supp_decisions))))
+print("  min: " + str(round(numpy.min(supp_decisions))))
+print("  max: " + str(round(numpy.max(supp_decisions))))
+print("RAW PATHWAY VALUES:")
+print(values)
+print("RAW SUPPRESS DECISIONS:")
+print(supp_decisions)
+
+LET BURN Results
+Pathway Values...
+  ave: 1500525.0
+  std: 119069.0
+  min: 1197168.0
+  max: 1664713.0
+Pathway Suppress Decisions...
+  ave:0.0
+  std: 0.0
+  min: 0.0
+  max: 1.0
+RAW PATHWAY VALUES:
+[1587704.0, 1270430.0, 1479579.0, 1516667.0, 1560383.0, 1628954.0, 1580334.0, 1641258.0, 1395431.0, 1496998.0, 1629343.0, 1561606.0, 1383628.0, 1550617.0, 1538319.0, 1664713.0, 1556804.0, 1609699.0, 1402893.0, 1449063.0, 1326693.0, 1372645.0, 1197168.0, 1598728.0, 1310319.0, 1588046.0, 1486618.0, 1552106.0, 1448269.0, 1630727.0]
+RAW SUPPRESS DECISIONS:
+[1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1]
+
+
+
+
+print("TA1 Results")
+values=[]
+supp_decisions = []
+for pw in pw2_TA1:
+  values.append(pw.net_value)
+  supp_decisions.append(pw.actions_1_taken)
+print("Pathway Values...")
+print("  ave: " + str(round(numpy.mean(values))))
+print("  std: " + str(round(numpy.std(values))))
+print("  min: " + str(round(numpy.min(values))))
+print("  max: " + str(round(numpy.max(values))))
+print("Pathway Suppress Decisions...")
+print("  ave:" + str(round(numpy.mean(supp_decisions))))
+print("  std: " + str(round(numpy.std(supp_decisions))))
+print("  min: " + str(round(numpy.min(supp_decisions))))
+print("  max: " + str(round(numpy.max(supp_decisions))))
+print("RAW PATHWAY VALUES:")
+print(values)
+print("RAW SUPPRESS DECISIONS:")
+print(supp_decisions)
+
+
+TA1 Results
+Pathway Values...
+  ave: 1024479.0
+  std: 159629.0
+  min: 627730.0
+  max: 1234605.0
+>>> print("Pathway Suppress Decisions...")
+Pathway Suppress Decisions...
+  ave:100.0
+  std: 0.0
+  min: 99.0
+  max: 100.0
+RAW PATHWAY VALUES:
+[1115825.0, 880064.0, 942104.0, 1187831.0, 1050123.0, 1222721.0, 967142.0, 1202759.0, 635707.0, 963524.0, 1126141.0, 936784.0, 760874.0, 1233912.0, 1157988.0, 1002227.0, 1112064.0, 1001157.0, 918429.0, 1100469.0, 1159685.0, 1091948.0, 627730.0, 1189830.0, 894228.0, 1234605.0, 1003253.0, 1118340.0, 887495.0, 1009409.0]
+RAW SUPPRESS DECISIONS:
+[100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 99, 100, 100, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
+
+
+print("TA2 Results")
+values=[]
+supp_decisions = []
+for pw in pw2_TA3:
+  values.append(pw.net_value)
+  supp_decisions.append(pw.actions_1_taken)
+print("Pathway Values...")
+print("  ave: " + str(round(numpy.mean(values))))
+print("  std: " + str(round(numpy.std(values))))
+print("  min: " + str(round(numpy.min(values))))
+print("  max: " + str(round(numpy.max(values))))
+print("Pathway Suppress Decisions...")
+print("  ave:" + str(round(numpy.mean(supp_decisions))))
+print("  std: " + str(round(numpy.std(supp_decisions))))
+print("  min: " + str(round(numpy.min(supp_decisions))))
+print("  max: " + str(round(numpy.max(supp_decisions))))
+print("RAW PATHWAY VALUES:")
+print(values)
+print("RAW SUPPRESS DECISIONS:")
+print(supp_decisions)
+
+TA2 Results
+Pathway Values...
+  ave: 1024479.0
+  std: 159629.0
+  min: 627730.0
+  max: 1234605.0
+Pathway Suppress Decisions...
+  ave:100.0
+  std: 0.0
+  min: 99.0
+  max: 100.0
+RAW PATHWAY VALUES:
+[1115825.0, 880064.0, 942104.0, 1187831.0, 1050123.0, 1222721.0, 967142.0, 1202759.0, 635707.0, 963524.0, 1126141.0, 936784.0, 760874.0, 1233912.0, 1157988.0, 1002227.0, 1112064.0, 1001157.0, 918429.0, 1100469.0, 1159685.0, 1091948.0, 627730.0, 1189830.0, 894228.0, 1234605.0, 1003253.0, 1118340.0, 887495.0, 1009409.0]
+RAW SUPPRESS DECISIONS:
+[100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 99, 100, 100, 99, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
+
+
+
+___ III ___
+getting TA policies from the first round pathways
+
+opt2 = MDP_PolicyOptimizer(11)
+opt2.pathway_set = pw2
+opt2.save_pathways("7-6-15_III.pathways")
+opt2.normalize_pathways()
+
+TA2_1 = HKB_Heuristics.threshold(objfn=opt2.calc_obj_fn, x0=x0, bounds=bounds, iter_cap=500)
+TA2_2 = HKB_Heuristics.threshold(objfn=opt2.calc_obj_fn, x0=x0, bounds=bounds, iter_cap=500)
+TA2_3 = HKB_Heuristics.threshold(objfn=opt2.calc_obj_fn, x0=x0, bounds=bounds, iter_cap=500)
+TA2_4 = HKB_Heuristics.threshold(objfn=opt2.calc_obj_fn, x0=x0, bounds=bounds, iter_cap=500)
+Note: they weren't quite done, so let them go a bit longer
+
+TA2_1 = HKB_Heuristics.threshold(objfn=opt2.calc_obj_fn, x0=TA2_1, bounds=bounds, iter_cap=200)
+TA2_2 = HKB_Heuristics.threshold(objfn=opt2.calc_obj_fn, x0=TA2_2, bounds=bounds, iter_cap=200)
+TA2_3 = HKB_Heuristics.threshold(objfn=opt2.calc_obj_fn, x0=TA2_3, bounds=bounds, iter_cap=200)
+TA2_4 = HKB_Heuristics.threshold(objfn=opt2.calc_obj_fn, x0=TA2_4, bounds=bounds, iter_cap=200)
+
+TA2_seeds = [ TA2_1, TA2_2, TA2_3, TA2_4]
+
+checking policy values
+pw4 = trials.MDP_generate_from_seed_policies(TA2_seeds, pathway_count_per_seed=20, years=100, start_ID=1700, supp_var_cost=50, supp_fixed_cost=0, SEQUENCIAL_PATHWAYS=False)
+
+Output:
+Final Value: -3.51817259938e+29
+Final Value: -1.85235207759e+29
+Final Value: -7.16613442146e+28
+Final Value: -4.80628970403e+29
+..subset average value (1/4): 1003635.0
+..subset average value (2/4): 1003635.0
+..subset average value (3/4): 1003635.0
+..subset average value (4/4): 1003635.0
+[
+[-1.030,      0, 0.537, -0.1026,      1,  0.761,  0.2039, 0.346,     1,  0.765, 0.916],
+[-0.91, 0.00721, 0.732, -0.0454,  0.869,  0.704,  0.3835, 0.368,  0.808, 0.806, 0.983],
+[-0.680, 0.1267, 0.454, -0.03397, 0.982,  0.3510,  0.755, 0.263,  0.77,  0.700, 0.98],
+[-1.10, 0.02971, 0.4161,    0,    0.965,  0.1556, 0.1848, 0.4930, 0.952, 0.753, 0.978]
+]
+
+Notes: They're all about the same; using TA2_1
+
+
+
+
+___ IV ___
+rolling out new pathways on the best of these policies
+
+seeds=['CT', 'SA', 'LB', TA2_1]
+pw5 = trials.MDP_generate_from_seed_policies(seeds, pathway_count_per_seed=30, years=100, start_ID=2100, supp_var_cost=50, supp_fixed_cost=0, SEQUENCIAL_PATHWAYS=False)
+
+Output:
+..subset average value (1/4): 1322400.0  <-CT
+..subset average value (2/4): 1003853.0  <-SA
+..subset average value (3/4): 1440497.0  <-LB
+..subset average value (4/4): 1003853.0  <-TA2_1
+
+
+
+___ V ___ 
+Rewards for suppression; suppression costs: (-100,0)
+
+pw6 = trials.MDP_generate_from_seed_policies(seeds, pathway_count_per_seed=30, years=100, start_ID=1500, supp_var_cost=-100, supp_fixed_cost=0, SEQUENCIAL_PATHWAYS=False)
+
+Output
+..subset average value (1/4): 1915936.0  <-CT
+..subset average value (2/4): 2581014.0  <-SA
+..subset average value (3/4): 1503200.0  <-LB
+..subset average value (4/4): 2581014.0  <-TA2_1
+
+opt3 = MDP_PolicyOptimizer(11)
+opt3.pathway_set= pw6
+opt3.save_pathways("7-6-15_V.pathways")
+opt3.normalize_pathways()
+
+Running TA with various iteration caps... just to see about overfitting
+TA3_1 = HKB_Heuristics.threshold(objfn=opt3.calc_obj_fn, x0=x0, bounds=bounds, iter_cap=100)
+TA3_2 = HKB_Heuristics.threshold(objfn=opt3.calc_obj_fn, x0=x0, bounds=bounds, iter_cap=200)
+TA3_3 = HKB_Heuristics.threshold(objfn=opt3.calc_obj_fn, x0=x0, bounds=bounds, iter_cap=400)
+TA3_4 = HKB_Heuristics.threshold(objfn=opt3.calc_obj_fn, x0=x0, bounds=bounds, iter_cap=800)
+
+Outputs:
+Final Value: -7.40387766102e+14
+Final Value: -9.48511777304e+20
+Final Value: -1.27031421303e+27
+Final Value: -5.81458459838e+29 
+[0.1400,      0,  -0.2329,      0, -0.2168, -0.167, -0.2557,  -0.141, -0.02807, -0.1853, -0.297]
+[0.528, -0.1522,  -0.2208,      0, -0.0786, -0.4783, -0.2587, -0.338, -0.353,   -0.1905, -0.552]
+[0.605, -0.0835,  -0.587, -0.00329, -0.703, -0.0923, -0.3406, -0.262, -0.474,    -1,     -0.821]
+[1.474, -0.05335, -0.769,  0.00573,     -1, -0.191,  -0.1426, -0.2354, -0.868, -0.718,   -0.698]
+
+seeds_TA3 = [ TA3_1, TA3_2, TA3_3, TA3_4 ]
+pw7 = trials.MDP_generate_from_seed_policies(seeds_TA3, pathway_count_per_seed=30, years=100, start_ID=1500, supp_var_cost=-100, supp_fixed_cost=0, SEQUENCIAL_PATHWAYS=False)
+
+opt4 = MDP_PolicyOptimizer(11)
+opt4.pathway_set= pw7
+opt4.save_pathways("7-6-15_V2.pathways")
