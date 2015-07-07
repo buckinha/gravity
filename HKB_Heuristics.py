@@ -1,5 +1,6 @@
 """Functions for heuristic solving"""
 import random
+import numpy
 
 
 def threshold(objfn, x0, bounds=None, iter_cap=1000, tolerance=1.1, MINIMIZING=True, SILENT=False):
@@ -223,6 +224,151 @@ def genetic(objfn, vector_length, bounds=None, iter_cap=500, generation_size=10,
     return mother_set[i]
 
 
+def simple_gradient(objfn, fprime, x0, bounds=None, step_size=0.05, MINIMIZING=True, USE_RELATIVE_STEP_SIZES=False):
+
+    print("")
+    x1 = x0[:]
+    x2 = x0[:]
+    a_little = step_size
+    val0 = objfn(x0)
+
+    if not bounds:
+        #there weren't any bounds passed in, so use the default ones
+        bounds = [None] * len(x0)
+        for i in range(len(bounds)):
+            bounds[i] = [-1,1]
+        bounds[0] = [-10,10]
+
+    failsafe_limit = 200
+    step_count = 0
+    while True:
+        step_count += 1
+        if step_count > failsafe_limit:
+            print("..iteration cap reached, exiting...")
+            break
+
+        val1 = objfn(x1)
+        grad1 = fprime(x1)
+
+        grad_max = 0.0
+        if USE_RELATIVE_STEP_SIZES:
+            for i in range(len(grad1)):
+                if numpy.abs(grad1[i]) > numpy.abs(grad_max): grad_max = grad1[i]
+
+
+        #take a small step in the direction of grad1
+        for i in range(len(grad1)):
+            #add or subtract, as necessary
+            if (MINIMIZING and grad1[i] > 0) or ((not MINIMIZING) and (grad1[i] < 0)):
+                if USE_RELATIVE_STEP_SIZES:
+                    x2[i] = x1[i] - a_little * numpy.abs(grad1[i]/grad_max)
+                else:
+                    x2[i] = x1[i] - a_little
+            elif (MINIMIZING and grad1[i] < 0) or ((not MINIMIZING) and (grad1[i] > 0)):
+                if USE_RELATIVE_STEP_SIZES:
+                    x2[i] = x1[i] + a_little * numpy.abs(grad1[i]/grad_max)
+                else:
+                    x2[i] = x1[i] + a_little
+            else:
+                # grad1[i] == 0
+                x2[i] = x1[i]
+
+        #check bounds
+        for i in range(len(x2)):
+            if x2[i] < bounds[i][0]: x2[i] = bounds[i][0]
+            if x2[i] > bounds[i][1]: x2[i] = bounds[i][1]
+
+        #and now check if that just reset all our changes
+        IDENTICAL=True
+        for i in range(len(x2)):
+            if not x1[i] == x2[i]: IDENTICAL = False
+        if IDENTICAL:
+            #this means that we were already at the boundaries, changed things, and then got reset back
+            # to the boundaries, and if we don't stop now, it'll just keep doing that same thing
+            print("..NOTE: Bounds are restricting further improvement... exiting (step " + str(step_count) + ")")
+            break
+
+
+
+
+        #see what that did
+        val2 = objfn(x2)
+
+        if (MINIMIZING and (val2 < val1))   or   ((not MINIMIZING) and (val2 > val1)) :
+            #we've done what we wanted, so accept this change, and loop
+            x1 = x2[:]
+            continue
+        else:
+            print("...full gradient step failed to improve, beginning piecewise steps (step " +str(step_count)+ ")")
+            #the small step didn't improve anything...
+            #try incremental improvements
+            IMPROVEMENT_FOUND = False
+            for i in range(len(x1)):
+
+                #reset x2 to try the next parameter
+                x2 = x1[:]
+
+                #add or subtract, as necessary
+                if (MINIMIZING and grad1[i] > 0) or ((not MINIMIZING) and (grad1[i] < 0)):
+                    if USE_RELATIVE_STEP_SIZES:
+                        x2[i] = x1[i] - a_little * numpy.abs(grad1[i]/grad_max)
+                    else:
+                        x2[i] = x1[i] - a_little
+                elif (MINIMIZING and grad1[i] < 0) or ((not MINIMIZING) and (grad1[i] > 0)):
+                    if USE_RELATIVE_STEP_SIZES:
+                        x2[i] = x1[i] + a_little * numpy.abs(grad1[i]/grad_max)
+                    else:
+                        x2[i] = x1[i] + a_little
+
+                #check bounds
+                if ( x2[i] < bounds[i][0] ) or ( x2[i] > bounds[i][1] ):
+                    #that improvemetn isn't allowed, so continue
+                    continue
+
+                #did that improve?
+                val2 = objfn(x2)
+                if (MINIMIZING and (val2<val1)) or ((not MINIMIZING) and (val2>val1)):
+                    #improvement, so keep this, and continue
+                    x1 = x2[:]
+                    IMPROVEMENT_FOUND = True
+                    print("... ... improving on parameter " + str(i))
+                    break
+                else:
+                    #didn't improve, so just continue
+                    pass
+
+            #loop has exited, check to see if it was because an improvement was found, or
+            #  if it just rolled off the end
+            if IMPROVEMENT_FOUND:
+                #well, hey!
+                #go ahead and continue the gradient decsent
+                continue
+            else:
+                #so following the whole gradient failed,
+                # and so did following each parameter's gradient individually, so 
+                # stop and take stock
+                print("..gradient is disimproving, even piecewise; exiting...")
+                break
+
+        #if l == (failsafe_limit - 1):
+        #    print("..reached iteration limit of (" + str(failsafe_limit) + ")")
+
+    #exited outermost loop
+
+    print("")
+    print("FINAL: No further improvements could be made..")
+    print("")
+    print("x0 was valued at: " + str(round(val0)))
+    print(" at a solution of:")
+    print(str(x0))
+    print("")
+    print("Final solution was valued at: " + str(round(objfn(x1))))
+    print(" at a solution of:")
+    print(str(x1))
+
+    return x1
+
+                    
 
 
 
@@ -230,5 +376,18 @@ def genetic(objfn, vector_length, bounds=None, iter_cap=500, generation_size=10,
 def parabola_1(x):
     return x[0]*x[0] - x[1]
 
+def parabola_1_prime(x):
+    fx0 = 2*x[0]
+    fx1 = -1
+    return [fx0, fx1] 
+
 def hyper_parabola_5_var(x):
     return (x[0]*x[0]) + ((x[1]-1)*(x[1]-1)) + ((x[2]-2)*(x[2]-2)) + ((x[3]-3)*(x[3]-3)) + ((x[4]-4)*(x[4]-4))
+
+def hyper_parabola_5_var_prime(x):
+    fx0 = 2*x[0] 
+    fx1 = 2*x[1] - 2*1
+    fx2 = 2*x[2] - 2*2
+    fx3 = 2*x[3] - 2*3
+    fx4 = 2*x[4] - 2*4
+    return [fx0, fx1, fx2, fx3, fx4]

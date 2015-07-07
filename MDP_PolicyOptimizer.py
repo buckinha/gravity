@@ -419,6 +419,7 @@ class MDP_PolicyOptimizer:
             b = self.Policy.get_params()
         else:
             b = betas
+            self.Policy.set_params(b)
 
         # list to hold the final values, one per parameter
         d_obj_d_bk = []
