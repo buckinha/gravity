@@ -1077,10 +1077,22 @@ class FireGirlTrials:
 
         pathways = [None]*pathway_count
 
-        #set up coin-toss policy if one isn't passed in
-        if policy == None:
-            policy = FireGirlPolicy()
-            policy.b = [0,0,0,0,0,0,0,0,0,0,0]
+        #set up policy if one isn't passed in
+        pol = FireGirlPolicy()
+
+        if (policy == None) or (policy == 'CT'):
+            pol.setParams([0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001,0.0001])
+        elif policy == 'LB':
+            pol.setParams([-10,0,0,0,0,0,0,0,0,0,0])
+        elif policy == 'SA':
+            pol.setParams([10,0,0,0,0,0,0,0,0,0,0])
+        elif isinstance(policy, list):
+            #copy the current 'policy' values
+            b = policy[:]
+            #set it's values
+            pol.setParams(b)
+        elif isinstance(policy, FireGirlPolicy):
+            pol.setParams(policy.getParams())
 
         for i in range(pathway_count):
             pathways[i] = FireGirlPathway(i+start_ID)
@@ -1090,7 +1102,7 @@ class FireGirlTrials:
             pathways[i].fire_suppression_cost_per_cell = supp_var_cost
 
             #creating a random policy (skipping first one: leaving constant parameter = 0)
-            pathways[i].Policy = policy
+            pathways[i].Policy = pol
 
             #generating landscape, running pathway simulations, and converting to MDP_pathway object
             pathways[i].generateNewLandscape()
