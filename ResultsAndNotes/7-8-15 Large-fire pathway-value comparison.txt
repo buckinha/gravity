@@ -1,0 +1,29 @@
+7-8-15
+
+Some large fire characteristics matched with ultimate pathway values
+
+Generate pathways on LB and SA
+Look at the largest fires for each pathway in terms of cells burned
+
+
+import numpy
+import FireGirlTests
+import HKB_Heuristics
+from FireGirlPolicy import *
+from MDP_PolicyOptimizer import *
+
+bounds = [None]*11
+for i in range(11):
+  bounds[i] = [-1,1]
+bounds[0] = [-10,10]
+x0 = [0,0,0,0,0,0,0,0,0,0,0]
+trials = FireGirlTests.FireGirlTrials()
+
+
+trials = FireGirlTests.FireGirlTrials()
+
+
+
+pw_sa = trials.MDP_generate_standard_set(policy='SA', supp_var_cost=0, supp_fixed_cost=0)        
+pw_lb = trials.MDP_generate_standard_set(policy='LB', supp_var_cost=0, supp_fixed_cost=0)
+
