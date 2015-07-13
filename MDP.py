@@ -216,13 +216,15 @@ def convert_SWIMM_pathway_to_MDP_pathway(SWIMM_pathway):
         #in SWIMM, the states are each in the following format:
         #states[i] = [ev, choice, choice_prob, policy_value, this_state_value, i]
         event.state_length = 2
-        event.state = SWIMM_pathway["States"][i][0]
+        event.state = [1, SWIMM_pathway["States"][i][0]]
         event.action = SWIMM_pathway["States"][i][1]
         event.decision_prob = SWIMM_pathway["States"][i][2]
         event.action_prob = SWIMM_pathway["States"][i][3]
         event.rewards = [SWIMM_pathway["States"][i][4]]
         
         new_MDP_pw.events.append(event)
+    
+    return new_MDP_pw
 
 def convert_firegirl_pathway_to_MDP_pathway(firegirlpathway):
     """Converts a FireGirlPathway object to the generic MDP_Pathway object and returns it

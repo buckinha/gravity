@@ -197,11 +197,8 @@ class MDP_PolicyOptimizer:
                         
                     product *= action_prob
                     
-                except (TypeError):
-                    print("FGPathway.calcTotalProb() encountered a TypeError:")
-                    print(" ignition.getProb() returns: " + str(ign.getProb()))
-                    print(" ignition.features are:")
-                    print(ign.features)
+                #except (TypeError):
+                #    print("FGPathway.calcTotalProb() encountered a TypeError:")
                 except (ArithmeticError):
                     #it is possible that a long series of multiplications over fractions
                     #  could result in an underflow conidtion. Here I'm assuming that is
