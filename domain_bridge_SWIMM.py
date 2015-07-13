@@ -186,136 +186,54 @@ def state(query):
     dict_reward = query["reward"]
     dict_transition = query["transition"]
     dict_policy = query["policy"] 
+
+    #compiling the parameters that are needed by SWIMM (the extras will be ignored)
+    dict_SWIMM = {}
+    dict_SWIMM.update(dict_reward)
+    dict_SWIMM.update(dict_transition)
     
-    show_count = 50
-    step = 1
-    if "Past Events to Show" in query.keys():
-        show_count = 1 + int(query["Past Events to Show"])
-    if "Past Events to Step Over" in query.keys():
-        step = 1 + int(query["Past Events to Step Over"])
+    #setting policy
+    pol = [dict_policy["Constant"], dict_policy["Severity"], 0]
 
-    #sanitizing
-    if step < 1: step = 1
-    if show_count < 1: show_count = 1
+    #creating pathway
+    spw = SWIMM.simulate(timesteps=event_number, policy=pol, random_seed=pathway_number, model_parameters=dict_SWIMM, SILENT=True)
 
+    #SWIMM simulations return a dictionary constructed as follows:
+    
+    #SWIMM_state = [ev, choice, choice_prob, policy_value, this_state_value, i]    
+    #SWIMM_pathway = {
+    #    "Average State Value": round(numpy.mean(vals),1),
+    #    "Total Pathway Value": round(numpy.sum(vals),0),
+    #    "STD State Value": round(numpy.std(vals),1),
+    #    "Suppressions": suppressions,
+    #    "Suppression Rate": round((float(suppressions)/timesteps),2),
+    #    "Joint Probability": joint_prob,
+    #    "Average Probability": round(ave_prob, 3),
+    #    "ID Number": random_seed,
+    #    "Timesteps": timesteps,
+    #    "Generation Policy": policy,
+    #    "States": SWIMM_state
+    #  }
 
-    #creating optimization objects
-    opt = FireGirlPolicyOptimizer()
-
-    #giving the simulation parameters to opt, so that it can pass
-    # them on to it's pathways as it creates them
-    opt.setFireGirlModelParameters(dict_transition, dict_reward)
-
-    #setting policy as well
-    #TODO make this robust to FireWoman policies
-    pol = FireGirlPolicy()
-    pol.setParams([dict_policy["Constant"],
-                   dict_policy["Date"],
-                   dict_policy["Days Left"],
-                   dict_policy["Temperature"],
-                   dict_policy["Wind Speed"],
-                   dict_policy["Timber Value"],
-                   dict_policy["Timber Value 8"],
-                   dict_policy["Timber Value 24"],
-                   dict_policy["Fuel Load"],
-                   dict_policy["Fuel Load 8"],
-                   dict_policy["Fuel Load 24"],
-                  ])
-
-    #assigning the policy to opt, so that it can use it in simulations.
-    opt.setPolicy(pol)
-
-    #Setting opt to tell it's pathway(s) to remember their histories
-    #un-needed, since we're just re-creating the pathway of interest anyway
-    #opt.PATHWAYS_RECORD_HISTORIES = True 
-
-    opt.SILENT = True
-
-    #creating image name list
-    names = [[],[],[],[]]
-
-    #creating pathway with no years... this will generate the underlying landscape and set
-    #  all the model parameters that were assigned earlier.
-    opt.createFireGirlPathways(1, 0, pathway_number)
-
-    #now incrementing the years
-    #because we start with the final year, and then skip backward showing every few landscapes,
-    #we may have to skip over several of the first landscapes before we start showing any
-    start = event_number - (step * (show_count -1))
-
-    #checking for negative numbers, in case the users has specified too many past landscapes to show
-    while start < 0:
-        start += step
-
-    #manually telling the pathway to do the first set of years
-    opt.pathway_set[0].doYears(start)
-
-    #get new names
-    timber_name = "static/timber_" + str(file_number_str()) + ".png"
-    fuel_name = "static/fuel_" + str(file_number_str()) + ".png"
-    composite_name = "static/composite_" + str(file_number_str()) + ".png"
-    burn_name = "static/burn_" + str(file_number_str()) + ".png"
-
-    #and save it's images
-    opt.pathway_set[0].saveImage(timber_name, "timber")
-    opt.pathway_set[0].saveImage(fuel_name, "fuel")
-    opt.pathway_set[0].saveImage(composite_name, "composite")
-    opt.pathway_set[0].saveImage(burn_name, "timber", 10)
-
-    #add these names to the lists
-    names[0].append(timber_name)
-    names[1].append(fuel_name)
-    names[2].append(composite_name)
-    names[3].append(burn_name)
-
-
-    #now loop through the rest of the states
-    for i in range(start, event_number+1, step):
-        #do the next set of years
-        opt.pathway_set[0].doYears(step)
-
-        #create a new image filenames
-        timber_name = "static/timber_" + str(file_number_str()) + ".png"
-        fuel_name = "static/fuel_" + str(file_number_str()) + ".png"
-        composite_name = "static/composite_" + str(file_number_str()) + ".png"
-        burn_name = "static/burn_" + str(file_number_str()) + ".png"
-
-        #save the images
-        opt.pathway_set[0].saveImage(timber_name, "timber")
-        opt.pathway_set[0].saveImage(fuel_name, "fuel")
-        opt.pathway_set[0].saveImage(composite_name, "composite")
-        opt.pathway_set[0].saveImage(burn_name, "timber", 10)
-
-        #add these names to the lists
-        names[0].append(timber_name)
-        names[1].append(fuel_name)
-        names[2].append(composite_name)
-        names[3].append(burn_name)
-
-    timber_stats = pathway_summary(opt.pathway_set[0],"timber")
-    fuel_stats = pathway_summary(opt.pathway_set[0],"fuel")
-    total_growth = opt.pathway_set[0].getGrowthTotal()
-    total_suppression = opt.pathway_set[0].getSuppressionTotal()
-    total_harvest = opt.pathway_set[0].getHarvestTotal()
-    total_timber_loss = opt.pathway_set[0].getTimberLossTotal()
 
     returnObj = {
-            "statistics": {
-              "Event Number": int(query["Event Number"]),
-              "Pathway Number": int(query["Pathway Number"]),
-              "Average Timber Value": int(timber_stats[0]),
-              "Timber Value Std.Dev.": int(timber_stats[1]),
-              "Average Timber Value - Center": int(timber_stats[2]),
-              "Timber Value Std.Dev. - Center": int(timber_stats[3]),
-              "Average Fuel Load": int(fuel_stats[0]),
-              "Fuel Load Std.Dev.": int(fuel_stats[1]),
-              "Average Fuel Load - Center": int(fuel_stats[2]),
-              "Fuel Load Std.Dev. - Center": int(fuel_stats[3]),
-              "Cumulative Harvest":total_harvest,
-              "Cumulative Suppression Cost": total_suppression,
-              "Cumulative Timber Loss":total_timber_loss,
-              "Cumulative Timber Growth":total_growth,
-             },
-            "images": names
+            "statistics": 
+            {
+              "Average State Value": spw["Average State Value"],
+              "Total Pathway Value": spw["Total Pathway Value"],
+              "STD State Value": spw["STD State Value"],
+              "Suppressions": spw["Suppressions"],
+              "Suppression Rate": spw["Suppression Rate"],
+              "Joint Probability": spw["Joint Probability"],
+              "Average Probability": spw["Average Probability"],
+              "ID Number": spw["ID Number"],
+              "Generation Policy": spw["Generation Policy"],
+              "Event Severity": spw["States"][0],
+              "Event Choice": spw["States"][1],
+              "Choice Probability": spw["States"][2],
+              "Policy Probability": spw["States"][3],
+              "Reward": spw["States"][4]
+            },
+            "images": []
             }
     return returnObj
