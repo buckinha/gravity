@@ -135,7 +135,7 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
 
     if not SILENT:
         print("")
-        print("Simulation Complete " + str(state"")
+        print("Simulation Complete - Pathway " + str(random_seed))
         print("Average State Value: " + str(round(numpy.mean(vals),1)) + "   STD: " + str(round(numpy.std(vals),1)))
         print("Suppressions: " + str(suppressions))
         print("Suppression Rate: " + str(round((float(suppressions)/timesteps),2)))
@@ -152,10 +152,10 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
 def simulate_all_policies(timesteps=10000, start_seed=0):
 
 
-    result_CT =    simulate(timesteps, policy=[  0,  0,  0], start_seed, SILENT=True)
-    result_LB =    simulate(timesteps, policy=[-20,  0,  0], start_seed, SILENT=True)
-    result_SA =    simulate(timesteps, policy=[ 20,  0,  0], start_seed, SILENT=True)
-    result_KNOWN = simulate(timesteps, policy=[  0, 20,-80], start_seed, SILENT=True)
+    result_CT =    simulate(timesteps, policy=[  0,  0,  0], random_seed=start_seed, SILENT=True)
+    result_LB =    simulate(timesteps, policy=[-20,  0,  0], random_seed=start_seed, SILENT=True)
+    result_SA =    simulate(timesteps, policy=[ 20,  0,  0], random_seed=start_seed, SILENT=True)
+    result_KNOWN = simulate(timesteps, policy=[  0, 20,-80], random_seed=start_seed, SILENT=True)
 
     result_CT["Name"] = "Coin-Toss:    "
     result_SA["Name"] = "Suppress-All: "
