@@ -2,10 +2,15 @@
 
 import random, math, numpy
 
-def simulate(timesteps, policy=[0,0,0], SILENT=False):
+def simulate(timesteps, policy=[0,0,0], random_seed=0, SILENT=False):
+    
+    random.seed(random_seed)
     
     basic_state_value = 2
 
+    #range of the randomly drawn, uniformally distributed "event"
+    #this is the only so-called state "feature" in this MDP and
+    #is comparable to a wildfire
     event_max = 100
     event_min = 0
 
@@ -133,11 +138,13 @@ def simulate(timesteps, policy=[0,0,0], SILENT=False):
     return summary
 
 
-def simulate_all_policies(timesteps=10000):
-    result_CT =    simulate(timesteps, policy=[  0,  0,  0], SILENT=True)
-    result_LB =    simulate(timesteps, policy=[-20,  0,  0], SILENT=True)
-    result_SA =    simulate(timesteps, policy=[ 20,  0,  0], SILENT=True)
-    result_KNOWN = simulate(timesteps, policy=[  0, 20,-80], SILENT=True)
+def simulate_all_policies(timesteps=10000, start_seed=0):
+
+
+    result_CT =    simulate(timesteps, policy=[  0,  0,  0], start_seed, SILENT=True)
+    result_LB =    simulate(timesteps, policy=[-20,  0,  0], start_seed, SILENT=True)
+    result_SA =    simulate(timesteps, policy=[ 20,  0,  0], start_seed, SILENT=True)
+    result_KNOWN = simulate(timesteps, policy=[  0, 20,-80], start_seed, SILENT=True)
 
     result_CT["Name"] = "Coin-Toss:    "
     result_SA["Name"] = "Suppress-All: "
