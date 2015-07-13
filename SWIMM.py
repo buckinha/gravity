@@ -2,11 +2,12 @@
 
 import random, math, numpy
 
-def simulate(timesteps, policy=[0,0,0], random_seed=0, SILENT=False):
+def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILENT=False):
     
     random.seed(random_seed)
     
     basic_state_value = 2
+    if "Constant Reward" in model_parameters.keys(): basic_state_value = model_parameters["Constant Reward"]
 
     #range of the randomly drawn, uniformally distributed "event"
     #this is the only so-called state "feature" in this MDP and
@@ -17,17 +18,23 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, SILENT=False):
 
     #cost of suppression in a low-severity fire
     action_1_cost_sev_low = 1
+    if "Suppression Cost - Mild Event" in model_parameters.keys(): action_1_cost_sev_low = model_parameters["Suppression Cost - Mild Event"]
 
     #cost of suppresion in a high-severity fire
     action_1_cost_sev_high = 4
+    if "Suppression Cost - Severe Event" in model_parameters.keys(): action_1_cost_sev_high = model_parameters["Suppression Cost - Severe Event"]
 
     #cost of a severe fire on the next timestep
     burn_cost = 6
+    if "Severe Burn Cost" in model_parameters.keys(): burn_cost = model_parameters["Severe Burn Cost"]
 
 
     severity_switchpoint_after_suppression = 80
     severity_switchpoint_after_low = 80
-    severity_switchpoint_after_high = 80 
+    severity_switchpoint_after_high = 80
+    if "Threshold After Suppression" in model_parameters.keys(): severity_switchpoint_after_suppression = model_parameters["Threshold After Suppression"]
+    if "Threshold After Low-Severity Event" in model_parameters.keys(): severity_switchpoint_after_low = model_parameters["Threshold After Low-Severity Event"]
+    if "Threshold After High-Severity Event" in model_parameters.keys(): severity_switchpoint_after_high = model_parameters["Threshold After High-Severity Event"]
 
 
 
@@ -98,7 +105,7 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, SILENT=False):
                 this_state_value -= action_1_cost_sev_low
 
 
-        states[i] = [ev, choice, choice_prob, this_state_value]
+        states[i] = [ev, choice, choice_prob, policy_value, this_state_value, i]
 
 
     #finished simulations, report some values
@@ -110,21 +117,25 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, SILENT=False):
         if states[i][1]: suppressions += 1
         joint_prob *= states[i][2]
         prob_sum += states[i][2]
-        vals.append(states[i][3])
+        vals.append(states[i][4])
     ave_prob = prob_sum / timesteps
 
     summary = {
                 "Average State Value": round(numpy.mean(vals),1),
+                "Total Pathway Value": round(numpy.sum(vals),0),
                 "STD State Value": round(numpy.std(vals),1),
                 "Suppressions": suppressions,
                 "Suppression Rate": round((float(suppressions)/timesteps),2),
                 "Joint Probability": joint_prob,
-                "Average Probability": round(ave_prob, 3)
+                "Average Probability": round(ave_prob, 3),
+                "ID Number": random_seed,
+                "Timesteps": timesteps,
+                "Generation Policy": policy
               }
 
     if not SILENT:
         print("")
-        print("Simulation Complete")
+        print("Simulation Complete " + str(state"")
         print("Average State Value: " + str(round(numpy.mean(vals),1)) + "   STD: " + str(round(numpy.std(vals),1)))
         print("Suppressions: " + str(suppressions))
         print("Suppression Rate: " + str(round((float(suppressions)/timesteps),2)))

@@ -196,6 +196,33 @@ def convert_to_array(numeric_list):
 
     return arr
 
+    
+def convert_SWIMM_pathway_to_MDP_pathway(SWIMM_pathway):
+    """ Converts a SWIMM pathway into a generic MDP_Pathway object and returns it"""
+    
+    #create a new MDP pathway object, with policy length = 2
+    new_MDP_pw = MDP_Pathway(2)
+    
+    new_MDP_pw.ID_number = SWIMM_pathway["ID Number"]
+    new_MDP_pw.net_value = SWIMM_pathway["Total Pathway Value"]
+    new_MDP_pw.actions_1_taken = SWIMM_pathway["Suppressions"]
+    new_MDP_pw.actions_0_taken = SWIMM_pathway["Timesteps"] - SWIMM_pathway["Suppressions"]
+    new_MDP_pw.generation_joint_prob = SWIMM_pathway["Joint Probability"]
+    new_MDP_pw.set_generation_policy_parameters(SWIMM_pathway["Generation Policy"][:])
+    
+    for i in range(len(SWIMM_pathway["States"])):
+        event = MDP_Event(i)
+        
+        #in SWIMM, the states are each in the following format:
+        #states[i] = [ev, choice, choice_prob, policy_value, this_state_value, i]
+        event.state_length = 2
+        event.state = SWIMM_pathway["States"][i][0]
+        event.action = SWIMM_pathway["States"][i][1]
+        event.decision_prob = SWIMM_pathway["States"][i][2]
+        event.action_prob = SWIMM_pathway["States"][i][3]
+        event.rewards = [SWIMM_pathway["States"][i][4]]
+        
+        new_MDP_pw.events.append(event)
 
 def convert_firegirl_pathway_to_MDP_pathway(firegirlpathway):
     """Converts a FireGirlPathway object to the generic MDP_Pathway object and returns it
