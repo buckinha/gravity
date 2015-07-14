@@ -170,6 +170,14 @@ def optimize(query):
 def rollouts(query):
     """
     Return a set of rollouts for the given parameters.
+
+    The return structure should be as follows:
+
+    [[{},{},{}],[{},{},{}],[{},{},{}]]
+
+    Where each dictionary represents a single event, and each inner list contains the dictionaries
+    associated with an individual pathway.
+    
     """
     dict_reward = query["reward"]
     dict_transition = query["transition"]
