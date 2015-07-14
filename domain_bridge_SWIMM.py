@@ -108,6 +108,15 @@ def optimize(query):
 def rollouts(query):
     """
     Return a set of rollouts for the given parameters.
+
+
+    The return structure should be as follows:
+
+    [[{},{},{}],[{},{},{}],[{},{},{}]]
+
+    Where each dictionary represents a single event, and each inner list contains the dictionaries
+    associated with an individual pathway.
+
     """
     dict_reward = query["reward"]
     dict_transition = query["transition"]
@@ -129,7 +138,8 @@ def rollouts(query):
     SWIMM_pws = [None] * dict_transition["Simulations"]
     for i in range(dict_transition["Simulations"]):
         new_sim = SWIMM.simulate(timesteps, policy=pol, random_seed=i, model_parameters=dict_SWIMM, SILENT=True)
-        SWIMM_pws[i] = MDP.convert_SWIMM_pathway_to_MDP_pathway(new_sim)
+        #SWIMM_pws[i] = MDP.convert_SWIMM_pathway_to_MDP_pathway(new_sim)
+        SWIMM_pws[i] = new_sim
 
     #outermost list to collect one sub-list for each pathway, etc...
     return_list = []
@@ -138,7 +148,7 @@ def rollouts(query):
     for pw in SWIMM_pws:
         #new ignition events list for this pathway
         pw_values = []
-        for ign in pw.ignition_events:
+        for ev in pw["States"]:
         
             #SWIMM simulations return a dictionary constructed as follows:
             
@@ -158,12 +168,12 @@ def rollouts(query):
             #  }
         
             features = {}
-            features["Event Severity"]     = pw["States"][0]
-            features["Action"]             = pw["States"][1]
-            features["Action Probability"] = pw["States"][2]
-            features["Policy Probability"] = pw["States"][3]
-            features["Reward"]             = pw["States"][4]
-            features["Timestep"]           = pw["States"][5]
+            features["Event Severity"]     = ev[0]
+            features["Action"]             = ev[1]
+            features["Action Probability"] = ev[2]
+            features["Policy Probability"] = ev[3]
+            features["Reward"]             = ev[4]
+            features["Timestep"]           = ev[5]
             
             
             #adding this dictionary to this pathway's list of dictionaries.
