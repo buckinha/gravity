@@ -14,6 +14,8 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
     #is comparable to a wildfire
     event_max = 100
     event_min = 0
+    
+    timesteps = int(timesteps)
 
 
     #cost of suppression in a low-severity fire
