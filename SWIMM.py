@@ -40,6 +40,9 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
 
 
 
+
+    #starting simulations
+
     states = [None] * timesteps
 
     previous_burn_cost = 0
