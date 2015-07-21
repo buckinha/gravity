@@ -162,3 +162,117 @@ def simulate_from_policy_seeds(pathway_count_per_seed=1000, timesteps=500, seeds
     for s in range(len(seeds)):
         print(str(seeds[s]) + ", " + str(averages[s]))
 
+def derivitive_graph_1(pathway_count_per_point, timesteps, p1_range=[5,25], p2_range=[-500,-2500], p1_step=1, p2_step=100, best_pol=[-1590,20,0]):
+    """Outputs data for building a graph of the behavior of the derivitive near the optimal policy
+
+    Output File: derivitive_graph_1_output.csv
+
+    """
+
+    total_steps_p1 = int (   abs(p1_range[1] - p1_range[0]) / p1_step   )
+    total_steps_p2 = int (   abs(p2_range[1] - p2_range[0]) / p2_step   )
+
+    #setting start-point to the lower of the two
+    p1_start = p1_range[0]
+    if p1_range[1] < p1_range[0]: p1_start = p1_range[1]
+    p2_start = p2_range[0]
+    if p2_range[1] < p2_range[0]: p2_start = p2_range[1]
+
+    #to collect output data for writing to derivitive_graph_1_output.csv
+    output_strings = []
+
+    #to calculate the derivitives, use an optimizer object
+    opt = MDP_PolicyOptimizer(2)
+
+    for p1 in range(total_steps_p1 + 1):
+        for p2 in range(total_steps_p2 + 1):
+
+            p1_val = p1_start + p1_step*p1
+            p2_val = p2_start + p2_step*p2
+
+            pol = [p1_val,p2_val,0]
+
+            pathways = [None] * pathway_count_per_point
+
+            for i in range(pathway_count_per_point):
+                pathways[i] = SWIMM.simulate(timesteps, policy=pol, random_seed=(p1*1000 + p2), SILENT=True)
+                pathways[i] = MDP.convert_SWIMM_pathway_to_MDP_pathway(pathways[i])
+
+            #get the derivitive
+            opt.pathway_set = pathways
+            opt.Policy.set_params(pol[:2])
+            deriv = opt.calc_obj_FPrime()
+
+
+            #Basic Outputs
+            s = str(p1_val) + "," + str(p2_val) + "," + str(deriv[0]) + "," + str(deriv[1]) 
+
+            #Derived Outputs
+            # 2 means derivitive is zero, at the optima
+            # 1 means derivitive pointing correctly toward the optima
+            # 0 means derivitive is zero other than at the optima
+            # -1 means derivitive is pointing incorrectly (including non-zero at the optima)
+
+            #check derivitive 0
+            if (p1_val < best_pol[0]) and (round(deriv[0],8) > 0):
+                #pointing up, from beneath =)
+                s = s + "," + str(1)
+            elif (p1_val < best_pol[0]) and (round(deriv[0],8) < 0):
+                #pointing down, from beneath =(
+                s = s + "," + str(-1)
+            elif (p1_val > best_pol[0]) and (round(deriv[0],8) > 0):
+                #pointing up, from above =(
+                s = s + "," + str(-1)
+            elif (p1_val > best_pol[0]) and (round(deriv[0],8) < 0):
+                #pointing down, from above =)
+                s = s + "," + str(1)
+            elif (p1_val == best_pol[0]):
+                if (round(deriv[0],8) == 0):
+                    #at optima, derivitive neutral =)
+                    s = s + "," + str(2)
+                else:
+                    #at optima, derivitive non-neutral =(
+                    s = s + "," + str(-1)
+            elif (round(deriv[0], 8) == 0):
+                #derivitive is neutral, somewhere away from the optima
+                s = s + "," + str(0)
+
+
+            #check derivitive 1
+            if (p2_val < best_pol[1]) and (round(deriv[1],8) > 0):
+                #pointing up, from beneath =)
+                s = s + "," + str(1)
+            elif (p2_val < best_pol[1]) and (round(deriv[1],8) < 0):
+                #pointing down, from beneath =(
+                s = s + "," + str(-1)
+            elif (p2_val > best_pol[1]) and (round(deriv[1],8) > 0):
+                #pointing up, from above =(
+                s = s + "," + str(-1)
+            elif (p2_val > best_pol[1]) and (round(deriv[1],8) < 0):
+                #pointing down, from above =)
+                s = s + "," + str(1)
+            elif (p2_val == best_pol[1]):
+                if (round(deriv[1],8) == 0):
+                    #at optima, derivitive neutral =)
+                    s = s + "," + str(2)
+                else:
+                    #at optima, derivitive non-zero =(
+                    s = s + "," + str(-1)
+            elif (round(deriv[1], 8) == 0):
+                #derivitive is neutral, somewhere away from the optima
+                s = s + "," + str(0)
+             
+            output_strings.append(s)
+
+    #finished gathering output strings, now write them to the file
+    f = open('derivitive_graph_1_output.txt', 'w')
+    f.write("SWIMM_Trials.derivitive_graph_1()\n")
+    f.write("Pathways per Point: " + str(pathway_count_per_point) +"\n")
+    f.write("Timesteps per Pathway: " + str(timesteps) +"\n")
+    f.write("Best Policy: " + str(best_pol) +"\n")
+    f.write("\n")
+    f.write("DATA\n")
+    f.write("P1,P2,dP1/dObj,dP2/dObj,P1_STATUS,P2_STATUS\n")
+    for i in range(len(output_strings)):
+        f.write(output_strings[i] + "\n")
+    f.close
