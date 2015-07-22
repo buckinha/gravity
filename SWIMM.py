@@ -6,47 +6,57 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
     
     random.seed(random_seed)
     
-    basic_state_value = 2
-    if "Constant Reward" in model_parameters.keys(): basic_state_value = model_parameters["Constant Reward"]
+    constant_reward = 2
+    if "Constant Reward" in model_parameters.keys(): constant_reward = model_parameters["Constant Reward"]
 
     #range of the randomly drawn, uniformally distributed "event"
     #this is the only so-called state "feature" in this MDP and
     #is comparable to a wildfire
-    event_max = 100
-    event_min = 0
+    event_max = 1.0
+    event_min = 0.0
     
     timesteps = int(timesteps)
 
 
-    #cost of suppression in a low-severity fire
-    action_1_cost_sev_low = 1
-    if "Suppression Cost - Mild Event" in model_parameters.keys(): action_1_cost_sev_low = model_parameters["Suppression Cost - Mild Event"]
+    #cost of suppression in a mild event
+    supp_cost_mild = 1
+    if "Suppression Cost - Mild Event" in model_parameters.keys(): supp_cost_mild = model_parameters["Suppression Cost - Mild Event"]
 
-    #cost of suppresion in a high-severity fire
-    action_1_cost_sev_high = 4
-    if "Suppression Cost - Severe Event" in model_parameters.keys(): action_1_cost_sev_high = model_parameters["Suppression Cost - Severe Event"]
+    #cost of suppresion in a severe event
+    supp_cost_severe = 4
+    if "Suppression Cost - Severe Event" in model_parameters.keys(): supp_cost_severe = model_parameters["Suppression Cost - Severe Event"]
 
     #cost of a severe fire on the next timestep
     burn_cost = 6
     if "Severe Burn Cost" in model_parameters.keys(): burn_cost = model_parameters["Severe Burn Cost"]
 
 
-    severity_switchpoint_after_suppression = 80
-    severity_switchpoint_after_low = 80
-    severity_switchpoint_after_high = 80
-    if "Threshold After Suppression" in model_parameters.keys(): severity_switchpoint_after_suppression = model_parameters["Threshold After Suppression"]
-    if "Threshold After Low-Severity Event" in model_parameters.keys(): severity_switchpoint_after_low = model_parameters["Threshold After Low-Severity Event"]
-    if "Threshold After High-Severity Event" in model_parameters.keys(): severity_switchpoint_after_high = model_parameters["Threshold After High-Severity Event"]
+    threshold_suppression = 0.8
+    threshold_mild = 0.8
+    threshold_severe = 0.8
+    if "Threshold After Suppression" in model_parameters.keys(): threshold_suppression = model_parameters["Threshold After Suppression"]
+    if "Threshold After Mild Event" in model_parameters.keys(): threshold_mild = model_parameters["Threshold After Mild Event"]
+    if "Threshold After Severe Event" in model_parameters.keys(): threshold_severe = model_parameters["Threshold After Severe Event"]
 
+    PROBABALISTIC_CHOICES = True
+    if "Probabalistic Choices" in model_parameters.keys(): PROBABALISTIC_CHOICES = model_parameters["Probabalistic Choices"]
+
+
+    #setting 'enums'
+    POST_SUPPRESSION = 0
+    POST_MILD = 1
+    POST_SEVERE = 2
+
+    MILD=0
+    SEVERE=1
 
 
 
     #starting simulations
-
     states = [None] * timesteps
 
-    previous_burn_cost = 0
-    previous_burn = 'none'
+    #start current condition randomly among the three states
+    current_condition = random.randint(0,2)
 
     for i in range(timesteps):
 
@@ -54,13 +64,17 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
         ev = random.uniform(event_min, event_max)
 
         #severity is meant to be a hidden, "black box" variable inside the MDP
-        sev = 'low'
-        if previous_burn == 'none':
-            if ev > severity_switchpoint_after_suppression: sev = 'high'
-        elif previous_burn == "low":
-            if ev > severity_switchpoint_after_low: sev = 'high'
-        elif previous_burn == 'high':
-            if ev > severity_switchpoint_after_high: sev = 'high'
+        # and not available to the logistic function as a parameter
+        severity = MILD
+        if current_condition == POST_SUPPRESSION:
+            if ev >= threshold_suppression:
+                severity = SEVERE
+        elif current_condition == POST_MILD:
+            if ev >= threshold_mild:
+                severity = SEVERE
+        elif current_condition == POST_SUPPRESSION:
+            if ev >= threshold_severe:
+                severity = SEVERE
 
 
         #logistic function for the policy choice
@@ -74,43 +88,55 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
         policy_value = 1 / (1 + math.exp(-1*(policy_crossproduct)))
 
         choice_roll = random.uniform(0,1)
+        #assume let-burn
         choice = False
         choice_prob = 1 - policy_value
-        if choice_roll < policy_value:
-            choice = True
-            choice_prob = policy_value
-
-        #now check the choice vs severity combinations, and update things for the next state
-        if sev == 'low':
-            if choice:
-                #low severity, with suppression
-                previous_burn_cost = 0
-                previous_burn = 'none'
-            else:
-                #low severity, without suppression
-                previous_burn_cost = 0
-                previous_burn = 'low'
-            
-        else: #sev == 'high'
-            if choice:
-                #high severity, with suppression
-                previous_burn_cost = 0
-                previous_burn = 'none'
-            else:
-                #high severity, without suppression
-                previous_burn_cost = burn_cost
-                previous_burn = 'high'
+        #check for suppress, and update values if necessary
+        if PROBABALISTIC_CHOICES:
+            if choice_roll < policy_value:
+                choice = True
+                choice_prob = policy_value
+        else:
+            if policy_value >= 0.5:
+                choice = True
+                choice_prob = policy_value
 
 
-        this_state_value = basic_state_value - previous_burn_cost
+        ### CALCULATE REWARD ###
+        supp_cost = 0
         if choice:
-            if sev == 'high':
-                this_state_value -= action_1_cost_sev_high
-            else: #sev == 'low'
-                this_state_value -= action_1_cost_sev_low
+            #suppression was chosen
+            if severity == MILD:
+                supp_cost = supp_cost_mild
+            elif severity == SEVERE: 
+                supp_cost = supp_cost_severe
+
+        burn_penalty = 0
+        if current_condition = POST_SEVERE:
+            burn_penalty = burn_cost
 
 
-        states[i] = [ev, choice, choice_prob, policy_value, this_state_value, i]
+        current_reward = constant_reward - supp_cost - burn_penalty
+                
+
+        states[i] = [ev, choice, choice_prob, policy_value, current_reward, i]
+
+
+
+        ### TRANSITION ###
+        if not choice:
+            #no suppression
+            if severity == SEVERE:
+                current_condition = POST_SEVERE
+            elif severity == MILD:
+                current_condition = POST_MILD
+        else:
+            #suppression
+            current_condition = POST_SUPPRESSION
+
+
+
+        
 
 
     #finished simulations, report some values
@@ -157,10 +183,10 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
 def simulate_all_policies(timesteps=10000, start_seed=0):
 
 
-    result_CT =    simulate(timesteps, policy=[  0,  0,  0], random_seed=start_seed, SILENT=True)
-    result_LB =    simulate(timesteps, policy=[-20,  0,  0], random_seed=start_seed, SILENT=True)
-    result_SA =    simulate(timesteps, policy=[ 20,  0,  0], random_seed=start_seed, SILENT=True)
-    result_KNOWN = simulate(timesteps, policy=[  0, 20,-80], random_seed=start_seed, SILENT=True)
+    result_CT =    simulate(timesteps, policy=[  0,  0, 0.0], random_seed=start_seed, SILENT=True)
+    result_LB =    simulate(timesteps, policy=[-20,  0, 0.0], random_seed=start_seed, SILENT=True)
+    result_SA =    simulate(timesteps, policy=[ 20,  0, 0.0], random_seed=start_seed, SILENT=True)
+    result_KNOWN = simulate(timesteps, policy=[  0, 20,-0.8], random_seed=start_seed, SILENT=True)
 
     result_CT["Name"] = "Coin-Toss:    "
     result_SA["Name"] = "Suppress-All: "
