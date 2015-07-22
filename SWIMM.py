@@ -112,7 +112,7 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
                 supp_cost = supp_cost_severe
 
         burn_penalty = 0
-        if current_condition = POST_SEVERE:
+        if current_condition == POST_SEVERE:
             burn_penalty = burn_cost
 
 

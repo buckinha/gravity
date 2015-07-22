@@ -22,7 +22,7 @@ def initialize():
                              "current_value": 4, "max": 100, "min": -100, "units": "~"},
                             {"name": "Suppression Cost - Mild Event",
                              "description":"The cost of suppressing a common, low-severity event.",
-                             "current_value": 2, "max": 100, "min": -100, "units": "~"},
+                             "current_value": 1, "max": 100, "min": -100, "units": "~"},
                             {"name": "Severe Burn Cost",
                              "description":"The future cost of not suppressing a severe fire event.",
                              "current_value": 6, "max": 100, "min": -100, "units": "~"}
@@ -36,13 +36,13 @@ def initialize():
                               "current_value": 200, "max": 10000, "min": 0, "units": "Y"},
                             {"name": "Threshold After Suppression",
                               "description": "events above this threshold will be considered severe fires if they occur in the next timestep after a suppression",
-                              "current_value": 80, "max": 100, "min": 0, "units": "Y"},
+                              "current_value": 0.8, "max": 1.0, "min": 0, "units": "Y"},
                             {"name": "Threshold After Low-Severity Event",
                               "description": "events above this threshold will be considered severe fires if they occur in the next timestep after a low-severity event",
-                              "current_value": 80, "max": 100, "min": 0, "units": "Y"},
+                              "current_value": 0.8, "max": 1.0, "min": 0, "units": "Y"},
                             {"name": "Threshold After High-Severity Event",
                               "description": "events above this threshold will be considered severe fires if they occur in the next timestep after a high-severity event",
-                              "current_value": 80, "max": 100, "min": 0, "units": "Y"}
+                              "current_value": 0.8, "max": 1.0, "min": 0, "units": "Y"}
                              ],
                 "policy": [
                             {"name": "Constant",
@@ -76,13 +76,13 @@ def optimize(query):
     pol = [dict_policy["Constant"], dict_policy["Severity"], 0]
 
     #creating pathways
-    SWIMM_pws = [None] * int(dict_transition["Simulations"])
-    for i in range(int(dict_transition["Simulations"])):
+    SWIMM_pws = [None] * dict_transition["Simulations"]
+    for i in range(dict_transition["Simulations"]):
         new_sim = SWIMM.simulate(timesteps, policy=pol, random_seed=i, model_parameters=dict_SWIMM, SILENT=True)
         SWIMM_pws[i] = MDP.convert_SWIMM_pathway_to_MDP_pathway(new_sim)
 
     #creating optimization objects
-    opt = MDP_PolicyOptimizer(2)
+    opt = MDP_PolicyOptimizer()
 
     #giving pathways to the optimizer
     opt.pathway_set = SWIMM_pws
@@ -135,8 +135,8 @@ def rollouts(query):
     pol = [dict_policy["Constant"], dict_policy["Severity"], 0]
 
     #creating pathways
-    SWIMM_pws = [None] * int(dict_transition["Simulations"])
-    for i in range(int(dict_transition["Simulations"])):
+    SWIMM_pws = [None] * simulations
+    for i in range(simulations):
         new_sim = SWIMM.simulate(timesteps, policy=pol, random_seed=i, model_parameters=dict_SWIMM, SILENT=True)
         #SWIMM_pws[i] = MDP.convert_SWIMM_pathway_to_MDP_pathway(new_sim)
         SWIMM_pws[i] = new_sim
@@ -238,11 +238,11 @@ def state(query):
               "Average Probability": spw["Average Probability"],
               "ID Number": spw["ID Number"],
               "Generation Policy": spw["Generation Policy"],
-              "Event Severity": spw["States"][event_number-1][0],
-              "Event Choice": spw["States"][event_number-1][1],
-              "Choice Probability": spw["States"][event_number-1][2],
-              "Policy Probability": spw["States"][event_number-1][3],
-              "Reward": spw["States"][event_number-1][4]
+              "Event Severity": spw["States"][0],
+              "Event Choice": spw["States"][1],
+              "Choice Probability": spw["States"][2],
+              "Policy Probability": spw["States"][3],
+              "Reward": spw["States"][4]
             },
             "images": []
             }
