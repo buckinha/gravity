@@ -1,6 +1,4 @@
-from MDP_PolicyOptimizer import *
-import MDP
-import os
+import MDP, MDP_opt, os
 
 def optimize_ML(starting_policy_filename, objective_fn="J3"):
     """This function repeats short gradient decents until new pathways need to be generated.
@@ -41,7 +39,7 @@ def optimize_ML(starting_policy_filename, objective_fn="J3"):
 
     #print("Creating optimizer objects...")
     #create a FireGirlPolicyOptimizer object and load up the info it needs
-    opt = MDP_PolicyOptimizer(len(ML_pol.b))
+    opt = MDP_opt.Optimizer(len(ML_pol.b))
     opt.pathway_set = training_set
     opt.Policy = ML_pol
     #populating initial weights
@@ -49,7 +47,7 @@ def optimize_ML(starting_policy_filename, objective_fn="J3"):
     opt.set_obj_fn(objective_fn)
 
     #create a second optimizer object 
-    opt_holdout = MDP_PolicyOptimizer(len(holdout_pol.b))
+    opt_holdout = MDP_opt.Optimizer(len(holdout_pol.b))
     opt_holdout.pathway_set = holdout_set
     def calc_pathway_average_prob(self, pathway):
         """Returns the average probability this pathway's actions, given the current policy"""

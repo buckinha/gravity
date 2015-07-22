@@ -3,7 +3,7 @@ from scipy.optimize import *
 import MDP
 from FireGirlPathway import *
 
-class MDP_PolicyOptimizer:
+class Optimizer:
     def __init__(self,policy_length):
         """
         Arguements

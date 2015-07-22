@@ -1,5 +1,4 @@
-from MDP_PolicyOptimizer import *
-import MDP, SWIMM
+import MDP, MDP_opt, SWIMM
 
 # Keep track of file numbers so they don't repeat
 server_file_counter = 0
@@ -82,7 +81,7 @@ def optimize(query):
         SWIMM_pws[i] = MDP.convert_SWIMM_pathway_to_MDP_pathway(new_sim)
 
     #creating optimization objects
-    opt = MDP_PolicyOptimizer()
+    opt = MDP_opt.Optimizer()
 
     #giving pathways to the optimizer
     opt.pathway_set = SWIMM_pws

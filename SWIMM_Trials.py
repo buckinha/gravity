@@ -1,7 +1,6 @@
 """SWIMM Trials"""
 
-import MDP, SWIMM, HKB_Heuristics, random, numpy
-from MDP_PolicyOptimizer import *
+import MDP, SWIMM, HKB_Heuristics, random, numpy, MDP_opt
 
 def MDP_optimization(pathway_count=300, timesteps=100, start_ID=0, policy=[0,0,0]):
     """Create a SWIMM pathway set and attempt a basic policy optimization"""
@@ -13,7 +12,7 @@ def MDP_optimization(pathway_count=300, timesteps=100, start_ID=0, policy=[0,0,0
         pathways[i] = MDP.convert_SWIMM_pathway_to_MDP_pathway(pw)
     
     
-    opt = MDP_PolicyOptimizer(2)
+    opt = MDP_opt.Optimizer(2)
     opt.pathway_set = pathways
     
     print("")
@@ -30,7 +29,7 @@ def opt_with_HKB_simple_gradient(pathway_count=300, timesteps=100, start_ID=0, p
         pathways[i] = MDP.convert_SWIMM_pathway_to_MDP_pathway(pw)
     
     
-    opt = MDP_PolicyOptimizer(2)
+    opt = MDP_opt.Optimizer(2)
     opt.pathway_set = pathways
     #opt.normalize_pathways()
     
@@ -50,7 +49,7 @@ def opt_with_HKB_threshold(pathway_count=300, timesteps=100, start_ID=0, policy=
         pathways[i] = MDP.convert_SWIMM_pathway_to_MDP_pathway(pw)
     
     
-    opt = MDP_PolicyOptimizer(2)
+    opt = MDP_opt.Optimizer(2)
     opt.pathway_set = pathways
     #opt.normalize_pathways()
     
@@ -184,7 +183,7 @@ def derivitive_graph_1(pathway_count_per_point, timesteps, p1_range=[5,25], p2_r
     print(start_time)
 
     #to calculate the derivitives, use an optimizer object
-    opt = MDP_PolicyOptimizer(2)
+    opt = MDP_opt.Optimizer(2)
 
     for p1 in range(total_steps_p1 + 1):
         for p2 in range(total_steps_p2 + 1):
