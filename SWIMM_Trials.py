@@ -165,7 +165,7 @@ def simulate_from_policy_seeds(pathway_count_per_seed=1000, timesteps=500, seeds
 def derivitive_graph_1(pathway_count_per_point, timesteps, p1_range=[5,25], p2_range=[-500,-2500], p1_step=1, p2_step=100, best_pol=[-1590,20,0]):
     """Outputs data for building a graph of the behavior of the derivitive near the optimal policy
 
-    Output File: derivitive_graph_1_output.csv
+    Output File: derivitive_graph_1_output.txt
 
     """
 
@@ -180,6 +180,8 @@ def derivitive_graph_1(pathway_count_per_point, timesteps, p1_range=[5,25], p2_r
 
     #to collect output data for writing to derivitive_graph_1_output.csv
     output_strings = []
+    start_time = "Beginning Analysis:" + str(datetime.datetime.now())
+    print(start_time)
 
     #to calculate the derivitives, use an optimizer object
     opt = MDP_PolicyOptimizer(2)
@@ -264,11 +266,18 @@ def derivitive_graph_1(pathway_count_per_point, timesteps, p1_range=[5,25], p2_r
              
             output_strings.append(s)
 
+    end_time = "Finished:" + str(datetime.datetime.now())
+    print(end_time)
+    
     #finished gathering output strings, now write them to the file
     f = open('derivitive_graph_1_output.txt', 'w')
     f.write("SWIMM_Trials.derivitive_graph_1()\n")
+    f.write(start_time + "\n")
+    f.write(end_time + "\n")
     f.write("Pathways per Point: " + str(pathway_count_per_point) +"\n")
     f.write("Timesteps per Pathway: " + str(timesteps) +"\n")
+    f.write("P1 Range: " + str(p1_range) +"\n")
+    f.write("P2 Range: " + str(p2_range) +"\n")
     f.write("Best Policy: " + str(best_pol) +"\n")
     f.write("\n")
     f.write("DATA\n")
