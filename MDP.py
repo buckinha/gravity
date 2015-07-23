@@ -335,3 +335,17 @@ def logistic(value):
         #  high a exp() value. In turn, this means the division goes to zero, as expected
         #  for a logistic function.
         return 0.0
+
+def crossproduct(vector1, vector2):
+    """Returns the crossproduct of two vectors"""
+
+    if not len(vector1) == len(vector2):
+        print("Error in MDP.crossproduct(v1, v2)... vectors are not of equal length.")
+        return None
+
+    else:
+        total = 0
+        for i in range(len(vector1)):
+            total += vector1[i] * vector2[i]
+
+        return total

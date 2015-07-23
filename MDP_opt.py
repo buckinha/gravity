@@ -740,7 +740,13 @@ def normalize_pathway_features(pathways, rng=1.0):
 
     This function normalizes each state(feature) variable of each event in each pathway to fall
     between its rng and -rng arguments.
+
+    Any pathway that reports having already been normalized, is 'un-normalized' first
     """
+
+    #un-normalize anythign that needs it
+    #TODO
+
     feature_count = len(pathways[0].policy_length)
 
     #arrays to hold the max and min of each feature over ALL ignitions in ALL pathways
@@ -828,7 +834,7 @@ def normalize_pathway_net_values(pathways, rng=1.0):
         pw.net_value = ( pw.net_value - val_avg ) * norm_mag
 
 
-def J1(policy_vector, pathways, VALUE_NORMALIZATION=False, SILENT=True):
+def J1(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True):
     """Calculate the J1 objective function given a policy and a pathway set
 
     CALCULATION TYPE 
@@ -843,7 +849,8 @@ def J1(policy_vector, pathways, VALUE_NORMALIZATION=False, SILENT=True):
     timesteps = len(pathways[0].events)
 
     #Normalize Feature Values
-    normalize_pathway_features(pathways)
+    if FEATURE_NORMALIZATION:
+        normalize_pathway_features(pathways)
 
     #Normalize Pathway Values
     if VALUE_NORMALIZATION:
@@ -899,8 +906,7 @@ def J1(policy_vector, pathways, VALUE_NORMALIZATION=False, SILENT=True):
     #minimizing, so flip it
     return (-1.0 * obj_fn_val)
 
-
-def J2(policy_vector, pathways, VALUE_NORMALIZATION=False, SILENT=True):
+def J2(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True):
     """Calculate the J2 objective function given a policy and a pathway set
 
     CALCULATION TYPE 
@@ -915,7 +921,8 @@ def J2(policy_vector, pathways, VALUE_NORMALIZATION=False, SILENT=True):
     timesteps = len(pathways[0].events)
 
     #Normalize Feature Values
-    normalize_pathway_features(pathways)
+    if FEATURE_NORMALIZATION:
+        normalize_pathway_features(pathways)
     
     #Normalize Pathway Values
     if VALUE_NORMALIZATION:
@@ -972,7 +979,7 @@ def J2(policy_vector, pathways, VALUE_NORMALIZATION=False, SILENT=True):
     #minimizing, so flip it
     return (-1.0 * obj_fn_val)
 
-def J3(policy_vector, pathways, VALUE_NORMALIZATION=False, SILENT=True):
+def J3(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True):
     """Calculate the J3 objective function given a policy and a pathway set
 
     CALCULATION TYPE 
@@ -987,7 +994,8 @@ def J3(policy_vector, pathways, VALUE_NORMALIZATION=False, SILENT=True):
     timesteps = len(pathways[0].events)
 
     #Normalize Feature Values
-    normalize_pathway_features(pathways)
+    if FEATURE_NORMALIZATION:
+        normalize_pathway_features(pathways)
     
     #Normalize Pathway Values
     if VALUE_NORMALIZATION:
@@ -1047,9 +1055,7 @@ def J3(policy_vector, pathways, VALUE_NORMALIZATION=False, SILENT=True):
     #minimizing, so flip it
     return (-1.0 * obj_fn_val)
 
-
-
-def J4(policy_vector, pathways, VALUE_NORMALIZATION=False, SILENT=True):
+def J4(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True):
     """Calculate the J4 objective function given a policy and a pathway set
 
     CALCULATION TYPE 
@@ -1064,7 +1070,8 @@ def J4(policy_vector, pathways, VALUE_NORMALIZATION=False, SILENT=True):
     timesteps = len(pathways[0].events)
 
     #Normalize Feature Values
-    normalize_pathway_features(pathways)
+    if FEATURE_NORMALIZATION:
+        normalize_pathway_features(pathways)
     
     #Normalize Pathway Values
     if VALUE_NORMALIZATION:
