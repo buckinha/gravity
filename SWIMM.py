@@ -2,7 +2,7 @@
 
 import random, math, numpy
 
-def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILENT=False):
+def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILENT=False, PROBABILISTIC_CHOICES=True):
     
     random.seed(random_seed)
     
@@ -38,8 +38,11 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
     if "Threshold After Mild Event" in model_parameters.keys(): threshold_mild = model_parameters["Threshold After Mild Event"]
     if "Threshold After Severe Event" in model_parameters.keys(): threshold_severe = model_parameters["Threshold After Severe Event"]
 
-    PROBABALISTIC_CHOICES = True
-    if "Probabalistic Choices" in model_parameters.keys(): PROBABALISTIC_CHOICES = model_parameters["Probabalistic Choices"]
+    if "Probabilistic Choices" in model_parameters.keys():
+        if model_parameters["Probabilistic Choices"] == "True":
+            PROBABILISTIC_CHOICES = True
+        else:
+            PROBABILISTIC_CHOICES = False
 
 
     #setting 'enums'
@@ -92,7 +95,7 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
         choice = False
         choice_prob = 1 - policy_value
         #check for suppress, and update values if necessary
-        if PROBABALISTIC_CHOICES:
+        if PROBABILISTIC_CHOICES:
             if choice_roll < policy_value:
                 choice = True
                 choice_prob = policy_value

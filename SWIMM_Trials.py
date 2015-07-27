@@ -1,6 +1,6 @@
 """SWIMM Trials"""
 
-import MDP, SWIMM, HKB_Heuristics, random, numpy, MDP_opt
+import MDP, MDP_opt, SWIMM, HKB_Heuristics, random, numpy, datetime
 
 def MDP_optimization(pathway_count=300, timesteps=100, start_ID=0, policy=[0,0,0]):
     """Create a SWIMM pathway set and attempt a basic policy optimization"""
@@ -285,11 +285,11 @@ def derivitive_graph_1(pathway_count_per_point, timesteps, p1_range=[-1,1], p2_r
         f.write(output_strings[i] + "\n")
     f.close
 
-def obj_fn_graph_1(pathway_count_per_point, timesteps, starting_policy, objective_function='J1', p0_range=[-1,1], p1_range=[-1,1], p0_step=0.1, p1_step=0.1):
+def obj_fn_graph_1(pathway_count_per_point, timesteps, starting_policy, objective_function='J1', p0_range=[-1,1], p1_range=[-1,1], p0_step=0.1, p1_step=0.1, OUTPUT_FOR_SCILAB=True):
     """ Calculates obj.fn. values throughout the given policy space
     """
 
-    start_time = "Finished:" + str(datetime.datetime.now())
+    start_time = "Started:  " + str(datetime.datetime.now())
 
     #assign policy
     pol = []
@@ -315,8 +315,8 @@ def obj_fn_graph_1(pathway_count_per_point, timesteps, starting_policy, objectiv
 
 
     #get step counts and starting points
-    p0_step_count = (  abs(p0_range[1] - p0_range[0]) / p0_step  ) + 1
-    p1_step_count = (  abs(p1_range[1] - p1_range[0]) / p1_step  ) + 1
+    p0_step_count = int(  abs(p0_range[1] - p0_range[0]) / p0_step  ) + 1
+    p1_step_count = int(  abs(p1_range[1] - p1_range[0]) / p1_step  ) + 1
     p0_start = p0_range[0]
     if p0_range[1] < p0_range[0]: p0_start = p0_range[1]
     p1_start = p1_range[0]
@@ -332,7 +332,7 @@ def obj_fn_graph_1(pathway_count_per_point, timesteps, starting_policy, objectiv
     #create pathway set
     pathways = [None] * pathway_count_per_point
     for i in range(pathway_count_per_point):
-        pw = SWIMM.simulate(timesteps=timesteps, policy=pol, random_seed=(5000+i))
+        pw = SWIMM.simulate(timesteps=timesteps, policy=pol, random_seed=(5000+i), SILENT=True)
         pathways[i] = MDP.convert_SWIMM_pathway_to_MDP_pathway(pw)
 
 
@@ -342,10 +342,10 @@ def obj_fn_graph_1(pathway_count_per_point, timesteps, starting_policy, objectiv
             #set policy
             p0_val = p0_start + col*p0_step
             p1_val = p1_start + row*p1_step
-            p1_rows[row][col] = obj_fn(policy=[p0_val,p1_val], pathways=pathways, FEATURE_NORMALIZATION=False)
+            p1_rows[row][col] = obj_fn(policy_vector=[p0_val,p1_val], pathways=pathways, FEATURE_NORMALIZATION=False)
 
 
-    end_time = "Finished:" + str(datetime.datetime.now())
+    end_time = "Finished: " + str(datetime.datetime.now())
 
     #finished gathering output strings, now write them to the file
     f = open('objective_function_graph_1.txt', 'w')
@@ -356,25 +356,123 @@ def obj_fn_graph_1(pathway_count_per_point, timesteps, starting_policy, objectiv
     f.write(end_time + "\n")
     f.write("Pathways per Point: " + str(pathway_count_per_point) +"\n")
     f.write("Timesteps per Pathway: " + str(timesteps) +"\n")
+    f.write("P0 Range: " + str(p0_range) +"\n")
     f.write("P1 Range: " + str(p1_range) +"\n")
-    f.write("P2 Range: " + str(p2_range) +"\n")
+    f.write("Objective Function: " + str(objective_function) + "\n")
     f.write("Starting Policy: " + str(starting_policy) +"\n")
     f.write("\n")
 
-    #Writing Data
-    f.write(",,Parameter 0\n")
-    f.write(",,")
-    for i in range(p0_step_count):
-        f.write( str( p0_start + i*p0_step ) + ",")
-    f.write("\n")
-    f.write("Paramter 1")
-    for row in range(p1_step_count):
-        f.write(",")
-        #write the p1 value
-        f.write( str( p1_start + row*p1_step ) + "," )
-
-        for col in range(p0_step_count):
-            f.write( str(p1_rows[row][col]) + "," )
+    if not OUTPUT_FOR_SCILAB:
+        #Writing Data for Excel
+        f.write(",,Parameter 0\n")
+        f.write(",,")
+        for i in range(p0_step_count):
+            f.write( str( p0_start + i*p0_step ) + ",")
         f.write("\n")
+        f.write("Paramter 1")
+        for row in range(p1_step_count):
+            f.write(",")
+            #write the p1 value
+            f.write( str( p1_start + row*p1_step ) + "," )
 
-    f.close
+            for col in range(p0_step_count):
+                f.write( str(p1_rows[row][col]) + "," )
+            f.write("\n")
+    else:
+        #Writing Data for Scilab
+        f.write("Scilab Matrix\n")
+        for row in range(p1_step_count):
+
+            for col in range(p0_step_count):
+                f.write( str(p1_rows[row][col]) + " " )
+            f.write("\n")
+
+
+
+    f.close()
+
+
+def pathway_value_graph_1(pathway_count_per_point, timesteps, p0_range=[-1,1], p1_range=[-1,1], p0_step=0.1, p1_step=0.1, PROBABILISTIC_CHOICES=False, OUTPUT_FOR_SCILAB=True):
+    """Step through the policy space and get the monte carlo net values at each policy point"""
+
+    start_time = "Started:  " + str(datetime.datetime.now())
+
+    #get step counts and starting points
+    p0_step_count = int(  abs(p0_range[1] - p0_range[0]) / p0_step  ) + 1
+    p1_step_count = int(  abs(p1_range[1] - p1_range[0]) / p1_step  ) + 1
+    p0_start = p0_range[0]
+    if p0_range[1] < p0_range[0]: p0_start = p0_range[1]
+    p1_start = p1_range[0]
+    if p1_range[1] < p1_range[0]: p1_start = p1_range[1]
+
+
+    #create the rows/columns structure
+    p1_rows = [None] * p1_step_count
+    for i in range(p1_step_count):
+        p1_rows[i] = [None] * p0_step_count
+
+
+    #step through the polcies and generate monte carlo rollouts, and save their average value
+    for row in range(p1_step_count):
+        for col in range(p0_step_count):
+            p0_val = p0_start + col*p0_step
+            p1_val = p1_start + row*p1_step
+
+            pathways = [None]*pathway_count_per_point
+
+            for i in range(pathway_count_per_point):
+                pathways[i] = SWIMM.simulate(timesteps=timesteps, policy=[p0_val,p1_val,0], random_seed=(5000+i), SILENT=True, PROBABILISTIC_CHOICES=PROBABILISTIC_CHOICES)
+
+            #get the average value
+            val_sum = 0.0
+            for i in range(pathway_count_per_point):
+                val_sum += pathways[i]["Average State Value"]
+
+            val_avg = val_sum / pathway_count_per_point
+
+            p1_rows[row][col] = val_avg
+
+
+    end_time = "Finished: " + str(datetime.datetime.now())
+
+    #finished gathering output strings, now write them to the file
+    f = open('pathway_value_graph_1.txt', 'w')
+
+    #Writing Header
+    f.write("SWIMM_Trials.pathway_value_graph_1()\n")
+    f.write(start_time + "\n")
+    f.write(end_time + "\n")
+    f.write("Pathways per Point: " + str(pathway_count_per_point) +"\n")
+    f.write("Timesteps per Pathway: " + str(timesteps) +"\n")
+    f.write("P0 Range: " + str(p0_range) +"\n")
+    f.write("P1 Range: " + str(p1_range) +"\n")
+    f.write("\n")
+
+    if not OUTPUT_FOR_SCILAB:
+        #Writing Data for Excel
+        f.write(",,Parameter 0\n")
+        f.write(",,")
+        for i in range(p0_step_count):
+            f.write( str( p0_start + i*p0_step ) + ",")
+        f.write("\n")
+        f.write("Paramter 1")
+        for row in range(p1_step_count):
+            f.write(",")
+            #write the p1 value
+            f.write( str( p1_start + row*p1_step ) + "," )
+
+            for col in range(p0_step_count):
+                f.write( str(p1_rows[row][col]) + "," )
+            f.write("\n")
+    else:
+        #Writing Data for Scilab
+        f.write("Scilab Matrix\n")
+        for row in range(p1_step_count):
+
+            for col in range(p0_step_count):
+                f.write( str(p1_rows[row][col]) + " " )
+            f.write("\n")
+
+
+
+    f.close()

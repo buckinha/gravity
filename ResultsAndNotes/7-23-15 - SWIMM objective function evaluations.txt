@@ -1,0 +1,26 @@
+7-23-15
+SWIMM Objective Function Graphing
+
+SWIMM_Trials.obj_fn_graph_1(200,200,'LB','J1')
+SWIMM_Trials.obj_fn_graph_1(200,200,'SA','J1')
+SWIMM_Trials.obj_fn_graph_1(200,200,'CT','J1')
+SWIMM_Trials.obj_fn_graph_1(200,200,[-0.8,1],'J1')
+
+SWIMM_Trials.obj_fn_graph_1(200,200,'LB','J2')
+SWIMM_Trials.obj_fn_graph_1(200,200,'SA','J2')
+SWIMM_Trials.obj_fn_graph_1(200,200,'CT','J2')
+SWIMM_Trials.obj_fn_graph_1(200,200,[-0.8,1],'J2')
+
+SWIMM_Trials.obj_fn_graph_1(200,200,'LB','J3')
+SWIMM_Trials.obj_fn_graph_1(200,200,'SA','J3')
+SWIMM_Trials.obj_fn_graph_1(200,200,'CT','J3')
+SWIMM_Trials.obj_fn_graph_1(200,200,[-0.8,1],'J3')
+
+SWIMM_Trials.obj_fn_graph_1(200,200,'LB','J4')
+SWIMM_Trials.obj_fn_graph_1(200,200,'SA','J4')
+SWIMM_Trials.obj_fn_graph_1(200,200,'CT','J4')
+SWIMM_Trials.obj_fn_graph_1(200,200,[-0.8,1],'J4')
+
+SWIMM_Trials.pathway_value_graph_1(200,200)
+#then changed the underlying flag to switch to deterministic policies
+SWIMM_Trials.pathway_value_graph_1(200,200)
