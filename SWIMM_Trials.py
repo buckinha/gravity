@@ -391,6 +391,175 @@ def obj_fn_graph_1(pathway_count_per_point, timesteps, starting_policy, objectiv
 
     f.close()
 
+def derivitive_graph_2(pathway_count_per_point, timesteps, starting_policy, objective_function='J1', p0_range=[-1,1], p1_range=[-1,1], p0_step=0.1, p1_step=0.1, OUTPUT_FOR_SCILAB=True):
+    """ Calculates obj.fn's derivitive values throughout the given policy space
+    """
+
+    start_time = "Started:  " + str(datetime.datetime.now())
+
+    #assign policy
+    pol = []
+    if isinstance(starting_policy, list):
+        if len(starting_policy) == 2:
+            #it's length-2, so add the shift parameter
+            pol = starting_policy + [0]
+        else:
+            #it's probably length-3, so just assign it
+            pol = starting_policy
+    else:
+        #it's not a list, so find out what string it is
+        if starting_policy == 'LB':    pol = [-20,0,0]
+        elif starting_policy == 'SA':  pol = [ 20,0,0]
+        elif starting_policy == 'CT':  pol = [  0,0,0]
+
+
+    #set the derivitive function.
+    opt = MDP_opt.Optimizer(2)
+    deriv_fn = opt.calc_obj_FPrime
+    #set the objective function style:
+    if   objective_function == 'J1': opt.set_obj_fn('J1')
+    elif objective_function == 'J2': opt.set_obj_fn('J2')
+    elif objective_function == 'J3': opt.set_obj_fn('J3')
+    elif objective_function == 'J4': 
+        print("Error.. MDP_opt.Optimzer does not support objective function 'J4'... Quitting.")
+        return None
+        #TODO: Once it DOES support J4...
+        #opt.set_obj_fn('J4')
+
+
+    #get step counts and starting points
+    p0_step_count = int(  abs(p0_range[1] - p0_range[0]) / p0_step  ) + 1
+    p1_step_count = int(  abs(p1_range[1] - p1_range[0]) / p1_step  ) + 1
+    p0_start = p0_range[0]
+    if p0_range[1] < p0_range[0]: p0_start = p0_range[1]
+    p1_start = p1_range[0]
+    if p1_range[1] < p1_range[0]: p1_start = p1_range[1]
+
+
+    #create the rows/columns structure
+    rows_d0 = [None] * p1_step_count
+    rows_d1 = [None] * p1_step_count
+    for i in range(p1_step_count):
+        rows_d0[i] = [None] * p0_step_count
+        rows_d1[i] = [None] * p0_step_count
+
+
+    #create pathway set
+    pathways = [None] * pathway_count_per_point
+    for i in range(pathway_count_per_point):
+        pw = SWIMM.simulate(timesteps=timesteps, policy=pol, random_seed=(5000+i), SILENT=True)
+        pathways[i] = MDP.convert_SWIMM_pathway_to_MDP_pathway(pw)
+
+    #set opt's pathways so that it can calculate the derivitive
+    opt.pathway_set = pathways
+
+    #loop over all rows and columns and populate each point with its obj. fn. value
+    for row in range(p1_step_count):
+        for col in range(p0_step_count):
+            #set policy
+            p0_val = p0_start + col*p0_step
+            p1_val = p1_start + row*p1_step
+            #get the derivitive at this policy value
+            dObj_db = deriv_fn([p0_val, p1_val])
+            #record value
+            rows_d0[row][col] = dObj_db[0]
+            rows_d1[row][col] = dObj_db[1]
+
+
+    end_time = "Finished: " + str(datetime.datetime.now())
+
+    #finished gathering output strings, now write them to the file
+
+
+    #WRITING FILE 1 - Derivitives for P0
+    f = open('derivitive_graph_2_d0.txt', 'w')
+
+    #Writing Header
+    f.write("SWIMM_Trials.derivitive_graph_2()\n")
+    f.write("Derivitives for P0\n")
+    f.write(start_time + "\n")
+    f.write(end_time + "\n")
+    f.write("Pathways per Point: " + str(pathway_count_per_point) +"\n")
+    f.write("Timesteps per Pathway: " + str(timesteps) +"\n")
+    f.write("P0 Range: " + str(p0_range) +"\n")
+    f.write("P1 Range: " + str(p1_range) +"\n")
+    f.write("Objective Function: " + str(objective_function) + "\n")
+    f.write("Starting Policy: " + str(starting_policy) +"\n")
+    f.write("\n")
+
+    if not OUTPUT_FOR_SCILAB:
+        #Writing Data for Excel
+        f.write(",,Parameter 0\n")
+        f.write(",,")
+        for i in range(p0_step_count):
+            f.write( str( p0_start + i*p0_step ) + ",")
+        f.write("\n")
+        f.write("Paramter 1")
+        for row in range(p1_step_count):
+            f.write(",")
+            #write the p1 value
+            f.write( str( p1_start + row*p1_step ) + "," )
+
+            for col in range(p0_step_count):
+                f.write( str(rows_d0[row][col]) + "," )
+            f.write("\n")
+    else:
+        #Writing Data for Scilab
+        f.write("Scilab Matrix\n")
+        for row in range(p1_step_count):
+
+            for col in range(p0_step_count):
+                f.write( str(rows_d0[row][col]) + " " )
+            f.write("\n")
+
+
+
+    f.close()
+
+    #WRITING FILE 2 - Derivitives for P1
+    f = open('derivitive_graph_2_d1.txt', 'w')
+
+    #Writing Header
+    f.write("SWIMM_Trials.derivitive_graph_2()\n")
+    f.write("Derivitives for P1\n")
+    f.write(start_time + "\n")
+    f.write(end_time + "\n")
+    f.write("Pathways per Point: " + str(pathway_count_per_point) +"\n")
+    f.write("Timesteps per Pathway: " + str(timesteps) +"\n")
+    f.write("P0 Range: " + str(p0_range) +"\n")
+    f.write("P1 Range: " + str(p1_range) +"\n")
+    f.write("Objective Function: " + str(objective_function) + "\n")
+    f.write("Starting Policy: " + str(starting_policy) +"\n")
+    f.write("\n")
+
+    if not OUTPUT_FOR_SCILAB:
+        #Writing Data for Excel
+        f.write(",,Parameter 0\n")
+        f.write(",,")
+        for i in range(p0_step_count):
+            f.write( str( p0_start + i*p0_step ) + ",")
+        f.write("\n")
+        f.write("Paramter 1")
+        for row in range(p1_step_count):
+            f.write(",")
+            #write the p1 value
+            f.write( str( p1_start + row*p1_step ) + "," )
+
+            for col in range(p0_step_count):
+                f.write( str(rows_d1[row][col]) + "," )
+            f.write("\n")
+    else:
+        #Writing Data for Scilab
+        f.write("Scilab Matrix\n")
+        for row in range(p1_step_count):
+
+            for col in range(p0_step_count):
+                f.write( str(rows_d1[row][col]) + " " )
+            f.write("\n")
+
+
+    f.close()
+
 
 def pathway_value_graph_1(pathway_count_per_point, timesteps, p0_range=[-1,1], p1_range=[-1,1], p0_step=0.1, p1_step=0.1, PROBABILISTIC_CHOICES=False, OUTPUT_FOR_SCILAB=True):
     """Step through the policy space and get the monte carlo net values at each policy point"""

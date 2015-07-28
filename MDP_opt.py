@@ -605,12 +605,18 @@ class Optimizer:
         """
 
         if objfn == "J1":
-            #set flags for J1.1
+            #set flags for J1.0
             self.IMPORTANCE_SAMPLING = False
-            self.NORMALIZED_WEIGHTS_OBJ_FN = True
-            self.NORMALIZED_WEIGHTS_F_PRIME = True
+            self.NORMALIZED_WEIGHTS_OBJ_FN = False
+            self.NORMALIZED_WEIGHTS_F_PRIME = False
             self.AVERAGED_WEIGHTS_OBJ_FN = False
             self.AVERAGED_WEIGHTS_F_PRIME = False
+            #set flags for J1.1          
+            # self.IMPORTANCE_SAMPLING = False
+            # self.NORMALIZED_WEIGHTS_OBJ_FN = True
+            # self.NORMALIZED_WEIGHTS_F_PRIME = True
+            # self.AVERAGED_WEIGHTS_OBJ_FN = False
+            # self.AVERAGED_WEIGHTS_F_PRIME = False
         elif objfn == "J2":
             #set flags for J2
             self.IMPORTANCE_SAMPLING = False

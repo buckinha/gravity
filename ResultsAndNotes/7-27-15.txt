@@ -1,0 +1,6 @@
+7-27-15
+More SWIMM Trials
+
+SWIMM_Trials.pathway_value_graph_1(200,200,p0_range=[-10,10], p1_range=[-10,10], p0_step=1.0, p1_step=1.0, PROBABILISTIC_CHOICES=True)
+
+SWIMM_Trials.pathway_value_graph_1(200,200,p0_range=[-20,20], p1_range=[-20,20], p0_step=1.0, p1_step=1.0, PROBABILISTIC_CHOICES=True)
