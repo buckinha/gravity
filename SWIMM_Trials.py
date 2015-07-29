@@ -391,8 +391,8 @@ def obj_fn_graph_1(pathway_count_per_point, timesteps, starting_policy, objectiv
 
     f.close()
 
-def derivitive_graph_2(pathway_count_per_point, timesteps, starting_policy, objective_function='J1', p0_range=[-1,1], p1_range=[-1,1], p0_step=0.1, p1_step=0.1, OUTPUT_FOR_SCILAB=True):
-    """ Calculates obj.fn's derivitive values throughout the given policy space
+def derivative_graph_2(pathway_count_per_point, timesteps, starting_policy, objective_function='J1', p0_range=[-1,1], p1_range=[-1,1], p0_step=0.1, p1_step=0.1, OUTPUT_FOR_SCILAB=True):
+    """ Calculates obj.fn's derivative values throughout the given policy space
     """
 
     start_time = "Started:  " + str(datetime.datetime.now())
@@ -413,7 +413,7 @@ def derivitive_graph_2(pathway_count_per_point, timesteps, starting_policy, obje
         elif starting_policy == 'CT':  pol = [  0,0,0]
 
 
-    #set the derivitive function.
+    #set the derivative function.
     opt = MDP_opt.Optimizer(2)
     deriv_fn = opt.calc_obj_FPrime
     #set the objective function style:
@@ -471,12 +471,12 @@ def derivitive_graph_2(pathway_count_per_point, timesteps, starting_policy, obje
     #finished gathering output strings, now write them to the file
 
 
-    #WRITING FILE 1 - Derivitives for P0
-    f = open('derivitive_graph_2_d0.txt', 'w')
+    #WRITING FILE 1 - Derivatives for P0
+    f = open('derivative_graph_2_d0.txt', 'w')
 
     #Writing Header
-    f.write("SWIMM_Trials.derivitive_graph_2()\n")
-    f.write("Derivitives for P0\n")
+    f.write("SWIMM_Trials.derivative_graph_2()\n")
+    f.write("Derivitaves for P0\n")
     f.write(start_time + "\n")
     f.write(end_time + "\n")
     f.write("Pathways per Point: " + str(pathway_count_per_point) +"\n")
@@ -516,11 +516,11 @@ def derivitive_graph_2(pathway_count_per_point, timesteps, starting_policy, obje
 
     f.close()
 
-    #WRITING FILE 2 - Derivitives for P1
-    f = open('derivitive_graph_2_d1.txt', 'w')
+    #WRITING FILE 2 - Derivatives for P1
+    f = open('derivative_graph_2_d1.txt', 'w')
 
     #Writing Header
-    f.write("SWIMM_Trials.derivitive_graph_2()\n")
+    f.write("SWIMM_Trials.derivative_graph_2()\n")
     f.write("Derivitives for P1\n")
     f.write(start_time + "\n")
     f.write(end_time + "\n")

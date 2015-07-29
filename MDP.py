@@ -16,7 +16,7 @@ class MDP_Pathway:
         #setting initial values to 1. This will mean that, unless they are explicitly set,
         # J3 weights will be equal to J1 weights.
         self.generation_policy_parameters = [1] * policy_length
-        self.generation_joint_prob = 1
+        self.generation_joint_prob = 1.0
 
         #other cumulative measures
         self.actions_0_taken = 0
@@ -29,27 +29,28 @@ class MDP_Pathway:
 
         #normalization values for net_value
         self.normalized_value = False
-        self.normalized_value_mag = 0
-        self.normalized_value_mean = 0
+        self.normalized_value_mag = 0.0
+        self.normalized_value_mean = 0.0
 
 
-        self.discount_rate = 1
+        self.discount_rate = 1.0
 
         #to hold the sum of all of this pathway's discounted values
-        self.net_value = 0
+        self.net_value = 0.0
 
 
-    def set_generation_policy_parameters(self,parameter_list):
+    def set_generation_policy_parameters(self,parameter_list, UPDATE_JOINT_PROB=False):
         self.generation_policy_parameters = parameter_list
 
         #calculate the joint probability (assuming there are any MDP_Event objects in the list)
         pol = MDP_Policy(self.policy_length)
 
-        joint_p = 1
-        for ev in self.events:
-            joint_p *= pol.calc_action_prob(ev)
+        if UPDATE_JOINT_PROB:
+            joint_p = 1.0
+            for ev in self.events:
+                joint_p *= pol.calc_action_prob(ev)
 
-        self.generation_joint_prob = joint_p
+            self.generation_joint_prob = joint_p
 
     def update_net_value(self):
         """Sums the rewards from every event and records the value in self.net_value"""
@@ -283,7 +284,7 @@ def convert_firegirl_pathway_to_MDP_pathway(firegirlpathway):
     #now that events are built, fill in the generation policy stuff
     #this will set MDP_Pathway.generation_policy_parameters and
     #              MDP_Pathway.generation_joint_prob
-    new_MDP_pw.set_generation_policy_parameters(firegirlpathway.Policy.b[:])
+    new_MDP_pw.set_generation_policy_parameters(firegirlpathway.Policy.b[:], UPDATE_JOINT_PROB=True)
 
 
 

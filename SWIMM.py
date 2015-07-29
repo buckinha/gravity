@@ -27,13 +27,13 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
     if "Suppression Cost - Severe Event" in model_parameters.keys(): supp_cost_severe = model_parameters["Suppression Cost - Severe Event"]
 
     #cost of a severe fire on the next timestep
-    burn_cost = 6
+    burn_cost = 12
     if "Severe Burn Cost" in model_parameters.keys(): burn_cost = model_parameters["Severe Burn Cost"]
 
 
     threshold_suppression = 0.8
-    threshold_mild = 0.8
-    threshold_severe = 0.8
+    threshold_mild = 0.85
+    threshold_severe = 0.95
     if "Threshold After Suppression" in model_parameters.keys(): threshold_suppression = model_parameters["Threshold After Suppression"]
     if "Threshold After Mild Event" in model_parameters.keys(): threshold_mild = model_parameters["Threshold After Mild Event"]
     if "Threshold After Severe Event" in model_parameters.keys(): threshold_severe = model_parameters["Threshold After Severe Event"]
@@ -88,12 +88,12 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
         if policy_crossproduct > 100: policy_crossproduct = 100
         if policy_crossproduct < -100: policy_crossproduct = -100
 
-        policy_value = 1 / (1 + math.exp(-1*(policy_crossproduct)))
+        policy_value = 1.0 / (1.0 + math.exp(-1*(policy_crossproduct)))
 
         choice_roll = random.uniform(0,1)
         #assume let-burn
         choice = False
-        choice_prob = 1 - policy_value
+        choice_prob = 1.0 - policy_value
         #check for suppress, and update values if necessary
         if PROBABILISTIC_CHOICES:
             if choice_roll < policy_value:
@@ -144,9 +144,9 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
 
     #finished simulations, report some values
     vals = []
-    suppressions = 0
-    joint_prob = 1
-    prob_sum = 0
+    suppressions = 0.0
+    joint_prob = 1.0
+    prob_sum = 0.0
     for i in range(timesteps):
         if states[i][1]: suppressions += 1
         joint_prob *= states[i][2]

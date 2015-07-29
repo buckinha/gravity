@@ -1040,7 +1040,7 @@ def J3(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=
                 pw_joint_prob *= policy_value
             else:
                 #action = False, i.e let-burn
-                pw_joint_prob *= (1-policy_value)
+                pw_joint_prob *= (1.0-policy_value)
 
         #the joint probability is fully-calculated, so add it to the list of weights
         weights[p] = pw_joint_prob / pathways[p].generation_joint_prob
