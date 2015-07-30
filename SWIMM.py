@@ -1,4 +1,4 @@
-"""A Simple Wildfire-inspired MDP model"""
+"""A Simple Wildfire-inspired MDP model. Version 1.0"""
 
 import random, math, numpy
 
@@ -164,7 +164,14 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
                 "Average Probability": round(ave_prob, 3),
                 "ID Number": random_seed,
                 "Timesteps": timesteps,
-                "Generation Policy": policy
+                "Generation Policy": policy,
+                "SWIMM Version": "1.0",
+                "Threshold After Suppression": threshold_suppression,
+                "Threshold After Mild": threshold_mild,
+                "Threshold After Severe": threshold_severe,
+                "Suppression Cost - Mild": supp_cost_mild,
+                "Suppression Cost - Severe": supp_cost_severe,
+                "Severe Burn Cost": burn_cost
               }
 
     if not SILENT:
