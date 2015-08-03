@@ -224,13 +224,17 @@ def genetic(objfn, vector_length, bounds=None, iter_cap=500, generation_size=10,
     return mother_set[i]
 
 
-def simple_gradient(objfn, fprime, x0, bounds=None, step_size=0.05, MINIMIZING=True, USE_RELATIVE_STEP_SIZES=False):
+def simple_gradient(objfn, fprime, x0, bounds=None, step_size=0.05, MINIMIZING=True, USE_RELATIVE_STEP_SIZES=False, max_steps=200):
 
     print("")
     x1 = x0[:]
     x2 = x0[:]
     a_little = step_size
     val0 = objfn(x0)
+
+    #creating an array to hold each step position and obj. fn. value
+    step_path = []
+    value_path = []
 
     if not bounds:
         #there weren't any bounds passed in, so use the default ones
@@ -239,16 +243,18 @@ def simple_gradient(objfn, fprime, x0, bounds=None, step_size=0.05, MINIMIZING=T
             bounds[i] = [-1,1]
         bounds[0] = [-10,10]
 
-    failsafe_limit = 200
     step_count = 0
     while True:
         step_count += 1
-        if step_count > failsafe_limit:
+        if step_count > max_steps:
             print("..iteration cap reached, exiting...")
             break
 
         val1 = objfn(x1)
         grad1 = fprime(x1)
+
+        step_path.append(x1)
+        value_path.append(val1)
 
         grad_max = 0.0
         if USE_RELATIVE_STEP_SIZES:
@@ -350,23 +356,32 @@ def simple_gradient(objfn, fprime, x0, bounds=None, step_size=0.05, MINIMIZING=T
                 print("..gradient is disimproving, even piecewise; exiting...")
                 break
 
-        #if l == (failsafe_limit - 1):
-        #    print("..reached iteration limit of (" + str(failsafe_limit) + ")")
 
     #exited outermost loop
+
+    val_final = round(objfn(x1),3)
 
     print("")
     print("FINAL: No further improvements could be made..")
     print("")
-    print("x0 was valued at: " + str(round(val0)))
+    print("x0 was valued at: " + str(round(val0,3)))
     print(" at a solution of:")
     print(str(x0))
     print("")
-    print("Final solution was valued at: " + str(round(objfn(x1))))
+    print("Final solution was valued at: " + str(val_final))
     print(" at a solution of:")
     print(str(x1))
 
-    return x1
+
+    summary = {}
+    summary["Step Path"] = step_path
+    summary["Value Path"] = value_path
+    summary["Starting Value"] = round(val0,3)
+    summary["Final Value"] = val_final
+    summary["Starting Position"] = x0
+    summary["Final Position"] = x1
+    
+    return summary
 
                     
 

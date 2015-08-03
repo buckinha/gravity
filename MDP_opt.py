@@ -360,10 +360,9 @@ class Optimizer:
         #any final checks/modifications to total_val can go here:
 
         #since scipy fmin... is a minimization routine, return the negative
-        obj_fn_val = -1.0 * total_value    
-        
-        
-        return obj_fn_val
+        #obj_fn_val = -1.0 * total_value          
+        #return obj_fn_val
+        return total_value
 
     def FP_delta_prob(self, beta, pw, evnt):
         #this function calculates the inner "delta_prob" value for each calculation of the derivitive.
@@ -494,8 +493,8 @@ class Optimizer:
 
         #because this is a minimization routine, and the objective function is being flipped, so too
         #  should be the derivatives
-        for b in range(len(d_obj_d_bk)):
-            d_obj_d_bk[b] *= -1.0
+        #for b in range(len(d_obj_d_bk)):
+        #    d_obj_d_bk[b] *= -1.0
 
 
         # And Finally, return the list
@@ -909,8 +908,7 @@ def J1(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=
         print("J1 Weights:")
         print(str(weights))
 
-    #minimizing, so flip it
-    return (-1.0 * obj_fn_val)
+    return obj_fn_val
 
 def J2(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True):
     """Calculate the J2 objective function given a policy and a pathway set
@@ -982,8 +980,7 @@ def J2(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=
         print("J2 Weights:")
         print(str(weights))
 
-    #minimizing, so flip it
-    return (-1.0 * obj_fn_val)
+    return obj_fn_val
 
 def J3(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True):
     """Calculate the J3 objective function given a policy and a pathway set
@@ -1058,8 +1055,7 @@ def J3(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=
         print("J3 Weights:")
         print(str(weights))
     
-    #minimizing, so flip it
-    return (-1.0 * obj_fn_val)
+    return obj_fn_val
 
 def J4(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True):
     """Calculate the J4 objective function given a policy and a pathway set
@@ -1140,5 +1136,419 @@ def J4(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=
         print("J4 Weights:")
         print(str(weights))
 
-    #minimizing, so flip it
-    return (-1.0 * obj_fn_val)
+    return obj_fn_val
+
+def J1prime(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True):
+    """
+    Calculates the derivitive of the J1 objective function and returns it as a list
+
+    Arguements
+    policy_vector : a list of the parameters of the logistic policy function
+    pathways : a list of MDP pathways on which to calculate
+    FEATURE_NORMALIZATION : Boolean; Whether or not to re-scale feature values to fall between 1 and -1
+    VALUE_NORMALIZATION : Boolean; Whether or not to re-scale pathway values to fall between 1 and -1
+    SILENT: Boolean; whether to report results to standard out
+
+    """
+    vector_size = len(policy_vector)
+    pathway_count = len(pathways)
+    timesteps = len(pathways[0].events)
+
+    # list to hold the final values, one per parameter
+    d_obj_d_bk = [0.0] * vector_size
+
+    #Normalize Feature Values
+    if FEATURE_NORMALIZATION:
+        normalize_pathway_features(pathways)
+
+    #Normalize Pathway Values
+    if VALUE_NORMALIZATION:
+        normalize_pathway_net_values(pathways)
+
+    #Gather the pathway values
+    values = [None] * len(pathways)
+    for p in range(len(pathways)):
+        #using value averaged over each timestep
+        values[p] = (pathways[p].net_value / timesteps)
+
+    
+    #Calculate joint probabilities for each pathway
+    weights = [None] * len(pathways)
+
+    for p in range(len(pathways)):
+        #in J1, the weight is simply the joint probability of this policy having
+        # resulted in the pathway's series of decisions
+        pw_joint_prob = 1.0
+
+        for e in pathways[p].events:
+            #get this policy's recommendation for this event
+            policy_value = MDP.logistic(MDP.crossproduct(e.state, policy_vector))
+
+            #check the action taken in the pathway,
+            #  if it's suppress (action=True) the probability of THIS policy making the
+            #    same decision is the actual policy_value calculated above
+            #  otherwise, it's 1 - policy_value (the probability of choosing let-burn)
+
+            if e.action:
+                #action = True, i.e. suppress
+                pw_joint_prob *= policy_value
+            else:
+                #action = False, i.e let-burn
+                pw_joint_prob *= (1-policy_value)
+
+        #the joint probability is fully-calculated, so add it to the list of weights
+        weights[p] = pw_joint_prob
+            
+
+    #creating and MDP_Policy object to do calculations
+    MDPpol = MDP_Policy(vector_length)
+    MDPpol.set_params(policy_vector)
+
+    #variables for use within the loop
+    prob = 1.0
+    delta_prob = 0.0
+    sum_delta_prob = 0.0
+    sum_delta_prob_AVE = 0.0
+    action = False
+    sup = 0
+    
+    #iterate over each beta and evaluate the gradient along it
+    for beta in range(vector_size):
+
+        for pw in range(pathway_count):
+
+            #reset value for this pathway
+            sum_delta_prob = 0.0
+            sum_delta_prob_AVE = 0.0
+
+            for evnt in range(timesteps):
+
+                #get the action choice of this pathway at this event
+                action = pathways[pw].events[evnt].action
+
+                #get the probability of actually making this action in this event
+                prob = pathways[pw].events[evnt].decision_prob
+
+                #checking for unreasonably small probabilities
+                if prob == 0: prob = 0.00001
+      
+                #get the feature of this pathway and this event for this beta
+                flik = pathways[pw].events[evnt].state[beta]
+
+                #calculate THIS policy's probability of suppressing at THIS state of THIS pathway
+                prob = MDPpol.calc_prob(self.pathway_set[pw].events[evnt].state)
+                        
+                delta_lgstc = flik * prob * (1-prob)
+
+                delta_prob = delta_lgstc
+                if action:
+                    #action was taken, so leave it alone
+                    pass
+                else:
+                    #action was not taken, so:
+                    delta_prob *= -1
+
+                sum_delta_prob += delta_prob / prob #J1
+
+            
+            #finished adding up sum_delta_prob for all the ignitions in this pathway, so
+            # calculate the d/dx value:
+            
+            
+            # #check which weights to use, and to the derivative appropriately
+            # if self.IMPORTANCE_SAMPLING:
+            #     #using J3 Importance Sampling Weights
+            #     d_obj_d_bk[beta] += self.pathway_set[pw].net_value * self.pathway_weights_importance_sampling[pw] * sum_delta_prob
+            # elif self.NORMALIZED_WEIGHTS_F_PRIME:
+            #     #using normalized weights inside the derivative calculation (J1.1)
+            #     d_obj_d_bk[beta] += self.pathway_set[pw].net_value * self.pathway_weights_normalized[pw] * sum_delta_prob
+            # else:
+            #     if self.AVERAGED_WEIGHTS_F_PRIME:
+            #         #doing average-weight calculation (J2)
+            #         invI = (1.0 / len(self.pathway_set[pw].events) )
+            #         d_obj_d_bk[beta] += self.pathway_set[pw].net_value * invI * sum_delta_prob_AVE                            
+            #     else:
+            #         #using standard joint-probability math (J1.0)
+            #         d_obj_d_bk[beta] += self.pathway_set[pw].net_value * self.pathway_weights[pw] * sum_delta_prob
+            d_obj_d_bk[beta] += pathways[pw].net_value * weights[pw] * sum_delta_prob
+                
+
+            #going on to the next pathway
+
+        #going on to the next beta
+
+    #finished with all betas
+
+    # And Finally, return the list
+    return scipy.array(d_obj_d_bk)
+
+def J3prime(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True):
+    """
+    Calculates the derivitive of the J3 objective function and returns it as a list
+
+    Arguements
+    policy_vector : a list of the parameters of the logistic policy function
+    pathways : a list of MDP pathways on which to calculate
+    FEATURE_NORMALIZATION : Boolean; Whether or not to re-scale feature values to fall between 1 and -1
+    VALUE_NORMALIZATION : Boolean; Whether or not to re-scale pathway values to fall between 1 and -1
+    SILENT: Boolean; whether to report results to standard out
+
+    """
+    vector_size = len(policy_vector)
+    pathway_count = len(pathways)
+    timesteps = len(pathways[0].events)
+
+    # list to hold the final values, one per parameter
+    d_obj_d_bk = [0.0] * vector_size
+
+    #Normalize Feature Values
+    if FEATURE_NORMALIZATION:
+        normalize_pathway_features(pathways)
+
+    #Normalize Pathway Values
+    if VALUE_NORMALIZATION:
+        normalize_pathway_net_values(pathways)
+
+    #Gather the pathway values
+    values = [None] * len(pathways)
+    for p in range(len(pathways)):
+        #using value averaged over each timestep
+        values[p] = (pathways[p].net_value / timesteps)
+
+    
+    #Calculate joint probabilities for each pathway
+    weights = [None] * len(pathways)
+
+    for p in range(len(pathways)):
+        #in J3, the weight is  the joint probability of this policy having
+        # resulted in the pathway's series of decisions, divided by the same value
+        # that the ORIGINAL policy gave (the policy that was used when the pathway
+        # was generated)
+
+        pw_joint_prob = 1.0
+
+        for e in pathways[p].events:
+            #get this policy's recommendation for this event
+            policy_value = MDP.logistic(MDP.crossproduct(e.state, policy_vector))
+
+            #check the action taken in the pathway,
+            #  if it's suppress (action=True) the probability of THIS policy making the
+            #    same decision is the actual policy_value calculated above
+            #  otherwise, it's 1 - policy_value (the probability of choosing let-burn)
+
+            if e.action:
+                #action = True, i.e. suppress
+                pw_joint_prob *= policy_value
+            else:
+                #action = False, i.e let-burn
+                pw_joint_prob *= (1.0-policy_value)
+
+        #the joint probability is fully-calculated, so add it to the list of weights
+        weights[p] = pw_joint_prob / pathways[p].generation_joint_prob
+            
+
+    #creating and MDP_Policy object to do calculations
+    MDPpol = MDP_Policy(vector_length)
+    MDPpol.set_params(policy_vector)
+
+    #variables for use within the loop
+    prob = 1.0
+    delta_prob = 0.0
+    sum_delta_prob = 0.0
+    sum_delta_prob_AVE = 0.0
+    action = False
+    sup = 0
+    
+    #iterate over each beta and evaluate the gradient along it
+    for beta in range(vector_size):
+
+        for pw in range(pathway_count):
+
+            #reset value for this pathway
+            sum_delta_prob = 0.0
+            sum_delta_prob_AVE = 0.0
+
+            for evnt in range(timesteps):
+
+                #get the action choice of this pathway at this event
+                action = pathways[pw].events[evnt].action
+
+                #get the probability of actually making this action in this event
+                prob = pathways[pw].events[evnt].decision_prob
+
+                #checking for unreasonably small probabilities
+                if prob == 0: prob = 0.00001
+      
+                #get the feature of this pathway and this event for this beta
+                flik = pathways[pw].events[evnt].state[beta]
+
+                #calculate THIS policy's probability of suppressing at THIS state of THIS pathway
+                prob = MDPpol.calc_prob(self.pathway_set[pw].events[evnt].state)
+                        
+                delta_lgstc = flik * prob * (1-prob)
+
+                delta_prob = delta_lgstc
+                if action:
+                    #action was taken, so leave it alone
+                    pass
+                else:
+                    #action was not taken, so:
+                    delta_prob *= -1
+
+                sum_delta_prob += delta_prob / prob #J1
+
+            
+            #finished adding up sum_delta_prob for all the ignitions in this pathway, so
+            # calculate the d/dx value:
+            
+            d_obj_d_bk[beta] += pathways[pw].net_value * weights[pw] * sum_delta_prob
+                
+
+            #going on to the next pathway
+
+        #going on to the next beta
+
+    #finished with all betas
+
+    # And Finally, return the list
+    return scipy.array(d_obj_d_bk)
+
+def J4primeWARNING(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True):
+    """
+    WARNING: This function is not correct yet... The derivative needs to be recalculated for J4
+
+
+    Calculates the derivitive of the J4 objective function and returns it as a list
+
+    Arguements
+    policy_vector : a list of the parameters of the logistic policy function
+    pathways : a list of MDP pathways on which to calculate
+    FEATURE_NORMALIZATION : Boolean; Whether or not to re-scale feature values to fall between 1 and -1
+    VALUE_NORMALIZATION : Boolean; Whether or not to re-scale pathway values to fall between 1 and -1
+    SILENT: Boolean; whether to report results to standard out
+
+    """
+    vector_size = len(policy_vector)
+    pathway_count = len(pathways)
+    timesteps = len(pathways[0].events)
+
+    # list to hold the final values, one per parameter
+    d_obj_d_bk = [0.0] * vector_size
+
+    #Normalize Feature Values
+    if FEATURE_NORMALIZATION:
+        normalize_pathway_features(pathways)
+
+    #Normalize Pathway Values
+    if VALUE_NORMALIZATION:
+        normalize_pathway_net_values(pathways)
+
+    #Gather the pathway values
+    values = [None] * len(pathways)
+    for p in range(len(pathways)):
+        #using value averaged over each timestep
+        values[p] = (pathways[p].net_value / timesteps)
+
+    
+    #Calculate joint probabilities for each pathway
+    J1_weights = [None] * len(pathways)
+    weights = [None] * len(pathways)
+    weight_sum = 0.0
+
+    for p in range(len(pathways)):
+        #in J4, the weight is the joint probability of this policy having
+        # resulted in the pathway's series of decisions, divided by the sum of all
+        # the joint probabilities, making it a zero-sum game
+
+        pw_joint_prob = 1.0
+
+        for e in pathways[p].events:
+            #get this policy's recommendation for this event
+            policy_value = MDP.logistic(MDP.crossproduct(e.state, policy_vector))
+
+            #check the action taken in the pathway,
+            #  if it's suppress (action=True) the probability of THIS policy making the
+            #    same decision is the actual policy_value calculated above
+            #  otherwise, it's 1 - policy_value (the probability of choosing let-burn)
+
+            if e.action:
+                #action = True, i.e. suppress
+                pw_joint_prob *= policy_value
+            else:
+                #action = False, i.e let-burn
+                pw_joint_prob *= (1-policy_value)
+
+        #the joint probability is fully-calculated, so add it to the list of weights
+        J1_weights[p] = pw_joint_prob
+        weight_sum += pw_joint_prob
+
+    #now use the J1 weights and the sum to calculate the J4 weights
+    for p in range(len(pathways)):
+        weights[p] = J1_weights[p] / weight_sum
+            
+
+    #creating and MDP_Policy object to do calculations
+    MDPpol = MDP_Policy(vector_length)
+    MDPpol.set_params(policy_vector)
+
+    #variables for use within the loop
+    prob = 1.0
+    delta_prob = 0.0
+    sum_delta_prob = 0.0
+    sum_delta_prob_AVE = 0.0
+    action = False
+    sup = 0
+    
+    #iterate over each beta and evaluate the gradient along it
+    for beta in range(vector_size):
+
+        for pw in range(pathway_count):
+
+            #reset value for this pathway
+            sum_delta_prob = 0.0
+            sum_delta_prob_AVE = 0.0
+
+            for evnt in range(timesteps):
+
+                #get the action choice of this pathway at this event
+                action = pathways[pw].events[evnt].action
+
+                #get the probability of actually making this action in this event
+                prob = pathways[pw].events[evnt].decision_prob
+
+                #checking for unreasonably small probabilities
+                if prob == 0: prob = 0.00001
+      
+                #get the feature of this pathway and this event for this beta
+                flik = pathways[pw].events[evnt].state[beta]
+
+                #calculate THIS policy's probability of suppressing at THIS state of THIS pathway
+                prob = MDPpol.calc_prob(self.pathway_set[pw].events[evnt].state)
+                        
+                delta_lgstc = flik * prob * (1-prob)
+
+                delta_prob = delta_lgstc
+                if action:
+                    #action was taken, so leave it alone
+                    pass
+                else:
+                    #action was not taken, so:
+                    delta_prob *= -1
+
+                sum_delta_prob += delta_prob / prob #J1 / J3
+
+            
+            #finished adding up sum_delta_prob for all the ignitions in this pathway, so
+            # calculate the d/dx value:
+                        
+            d_obj_d_bk[beta] += pathways[pw].net_value * weights[pw] * sum_delta_prob
+
+
+            #going on to the next pathway
+
+        #going on to the next beta
+
+    #finished with all betas
+
+    # And Finally, return the list
+    return scipy.array(d_obj_d_bk)
