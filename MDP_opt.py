@@ -752,7 +752,7 @@ def normalize_pathway_features(pathways, rng=1.0):
     #un-normalize anythign that needs it
     #TODO
 
-    feature_count = len(pathways[0].policy_length)
+    feature_count = pathways[0].policy_length
 
     #arrays to hold the max and min of each feature over ALL ignitions in ALL pathways
     feature_max = [float("-inf")] * feature_count
@@ -1201,7 +1201,7 @@ def J1prime(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZA
             
 
     #creating and MDP_Policy object to do calculations
-    MDPpol = MDP_Policy(vector_length)
+    MDPpol = MDP.MDP_Policy(vector_size)
     MDPpol.set_params(policy_vector)
 
     #variables for use within the loop
@@ -1236,7 +1236,7 @@ def J1prime(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZA
                 flik = pathways[pw].events[evnt].state[beta]
 
                 #calculate THIS policy's probability of suppressing at THIS state of THIS pathway
-                prob = MDPpol.calc_prob(self.pathway_set[pw].events[evnt].state)
+                prob = MDPpol.calc_prob(pathways[pw].events[evnt].state)
                         
                 delta_lgstc = flik * prob * (1-prob)
 
@@ -1278,7 +1278,7 @@ def J1prime(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZA
         #going on to the next beta
 
     #finished with all betas
-
+    
     # And Finally, return the list
     return scipy.array(d_obj_d_bk)
 
@@ -1348,7 +1348,7 @@ def J3prime(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZA
             
 
     #creating and MDP_Policy object to do calculations
-    MDPpol = MDP_Policy(vector_length)
+    MDPpol = MDP.MDP_Policy(vector_size)
     MDPpol.set_params(policy_vector)
 
     #variables for use within the loop
@@ -1383,7 +1383,7 @@ def J3prime(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZA
                 flik = pathways[pw].events[evnt].state[beta]
 
                 #calculate THIS policy's probability of suppressing at THIS state of THIS pathway
-                prob = MDPpol.calc_prob(self.pathway_set[pw].events[evnt].state)
+                prob = MDPpol.calc_prob(pathways[pw].events[evnt].state)
                         
                 delta_lgstc = flik * prob * (1-prob)
 
@@ -1488,7 +1488,7 @@ def J4primeWARNING(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NO
             
 
     #creating and MDP_Policy object to do calculations
-    MDPpol = MDP_Policy(vector_length)
+    MDPpol = MDP.MDP_Policy(vector_size)
     MDPpol.set_params(policy_vector)
 
     #variables for use within the loop
@@ -1523,7 +1523,7 @@ def J4primeWARNING(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NO
                 flik = pathways[pw].events[evnt].state[beta]
 
                 #calculate THIS policy's probability of suppressing at THIS state of THIS pathway
-                prob = MDPpol.calc_prob(self.pathway_set[pw].events[evnt].state)
+                prob = MDPpol.calc_prob(pathways.events[evnt].state)
                         
                 delta_lgstc = flik * prob * (1-prob)
 

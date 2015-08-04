@@ -385,8 +385,78 @@ def simple_gradient(objfn, fprime, x0, bounds=None, step_size=0.05, MINIMIZING=T
 
                     
 
+def simpler_hill_climb(objfn, fprime, x0, step_size=0.2, MINIMIZING=False, max_steps=20, objfn_args=None, fprime_args=None):
+    """An extemely simple hill-climbing algorithm with will blindly follow the derivitive for a set number of steps.
+    
+    """
+    
+    #a list to hold the position values at each step
+    path_list = [None] * max_steps
+    
+    #a list to hold the objective function values at each step. 
+    # These values are not used in the hill-climb, they are just for reference
+    value_list = [None] * max_steps
 
-
+    #a list for the continually updated "position" of the objective function
+    x_c = x0[:]
+    
+    for i in range(max_steps):
+        #add the current position to the list that holds the hill-climbing "path"
+        path_list[i] = x_c[:]
+        
+        #compute the current objective function value and record it
+        v_c = objfn(x_c, objfn_args)
+        value_list[i] = v_c
+        
+        #compute the gradient
+        g_c = fprime(x_c, fprime_args)
+        
+        #find the largest gradient component
+        max_g = float("-inf")
+        for j in range(len(g_c)):
+            if abs(g_c[j]) > max_g: max_g = abs(g_c[j])
+            
+        #update the current position appropriately
+        if MINIMIZING:
+            #MINIMIZING
+            #for each gradient component, 
+            #  if the component is negative, take a step in the positive direction (thus becoming more negative)
+            #  if the component is positive, take a step in the negative direction (thus becoming more negative)
+            #scale steps so that the largest gradient component gets a step of step_size 
+            # and every other component gets a proportionally smaller step
+            for c in range(len(g_c)):
+                if g_c[c] > 0:
+                    x_c[c] -= abs(g_c[c] / max_g) * step_size
+                elif g_c[c] < 0:
+                    x_c[c] += abs(g_c[c] / max_g) * step_size
+                else:
+                    #the gradient equals zero...
+                    pass
+        else:
+            #MAXIMIZING
+            #for each gradient component, 
+            #  if the component is positive, take a step in the positive direction
+            #  if the component is negative, take a step in the negative direction (thus becoming more positive)
+            #scale steps so that the largest gradient component gets a step of step_size 
+            # and every other component gets a proportionally smaller step
+            for c in range(len(g_c)):
+                if g_c[c] > 0:
+                    x_c[c] += abs(g_c[c] / max_g) * step_size
+                elif g_c[c] < 0:
+                    x_c[c] -= abs(g_c[c] / max_g) * step_size
+                else:
+                    #the gradient equals zero...
+                    pass
+                
+    #finished with all the steps we're allowed to take, so report the pathway and value lists
+    summary={}
+    summary["Path"] = path_list
+    summary["Values"] = value_list
+       
+    return summary
+        
+        
+        
 
 def parabola_1(x):
     return x[0]*x[0] - x[1]
