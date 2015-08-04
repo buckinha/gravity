@@ -405,11 +405,19 @@ def simpler_hill_climb(objfn, fprime, x0, step_size=0.2, MINIMIZING=False, max_s
         path_list[i] = x_c[:]
         
         #compute the current objective function value and record it
-        v_c = objfn(x_c, objfn_args)
+        v_c=0
+        if objfn_args:
+            v_c = objfn(x_c, objfn_args)
+        else:
+            v_c = objfn(x_c)
         value_list[i] = v_c
         
         #compute the gradient
-        g_c = fprime(x_c, fprime_args)
+        g_c=[]
+        if fprime_args:
+            g_c = fprime(x_c, fprime_args)
+        else:
+            g_c = fprime(x_c)
         
         #find the largest gradient component
         max_g = float("-inf")
@@ -475,4 +483,16 @@ def hyper_parabola_5_var_prime(x):
     fx2 = 2*x[2] - 2*2
     fx3 = 2*x[3] - 2*3
     fx4 = 2*x[4] - 2*4
+    return [fx0, fx1, fx2, fx3, fx4]
+    
+    
+def hyp_par_5_var_max(x):
+    return (-1.0*x[0]*x[0]) + (-1.0*(x[1]-1)*(x[1]-1)) + (-1.0*(x[2]-2)*(x[2]-2)) + (-1.0*(x[3]-3)*(x[3]-3)) + (-1.0*(x[4]-4)*(x[4]-4))
+
+def hyp_par_5_var_max_prime(x):
+    fx0 = -2.0*x[0] 
+    fx1 = -2.0*x[1] + 2*1
+    fx2 = -2.0*x[2] + 2*2
+    fx3 = -2.0*x[3] + 2*3
+    fx4 = -2.0*x[4] + 2*4
     return [fx0, fx1, fx2, fx3, fx4]
