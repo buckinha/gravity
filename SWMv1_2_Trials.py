@@ -268,14 +268,15 @@ def simple_hill_climb(pathway_count=200, timesteps=150, policy="MIXED_CT", objec
     fprime = opt.calc_obj_FPrime
 
     bounds = [[-20,20],[-20,20]]
-
+    
+    x0 = [-1,1]
 
     #start hill-climb
 
     #simple gradient has a signature of:
     #def simple_gradient(objfn, fprime, x0, bounds=None, step_size=0.05, MINIMIZING=True, USE_RELATIVE_STEP_SIZES=False, max_steps=200)
 
-    result = HKB_Heuristics.simple_gradient(objfn, fprime, [0,0], bounds=bounds, step_size=0.1, MINIMIZING=False, USE_RELATIVE_STEP_SIZES=True, max_steps=20)
+    result = HKB_Heuristics.simple_gradient(objfn, fprime, x0, bounds=bounds, step_size=0.1, MINIMIZING=False, USE_RELATIVE_STEP_SIZES=True, max_steps=20)
 
     
     #finished gathering output strings, now write them to the file
@@ -330,7 +331,7 @@ def simpler_hill_climb(pathway_count=200, timesteps=150, climbing_steps=20, step
         fprime = MDP_opt.J1prime
     
     
-    x0 = [0,0]
+    x0 = [-1,1]
     #signature is
     #simpler_hill_climb(        objfn, fprime,    x0, step_size=0.5, MINIMIZING=False, max_steps=20,     objfn_args=None,     fprime_args=None):
     result = HKB_Heuristics.simpler_hill_climb(objfn, fprime,    x0, step_size=step_size, MINIMIZING=MINIMIZING, max_steps=climbing_steps, objfn_args=pathways, fprime_args=pathways)
@@ -345,6 +346,7 @@ def simpler_hill_climb(pathway_count=200, timesteps=150, climbing_steps=20, step
     f.write("Pathways Count: " + str(pathway_count) +"\n")
     f.write("Timesteps per Pathway: " + str(timesteps) +"\n")
     f.write("Policy: " + str(policy) + "\n")
+    f.write("x0: " + str(x0) + "\n")
     f.write("\n")
     f.write("HILLCLIMBING INFORMATION:\n")
     f.write("Hill-climbing steps: " + str(climbing_steps) + "\n")
