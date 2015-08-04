@@ -1,6 +1,6 @@
 """SWM, A Simple Wildfire-inspired MDP model. Version 1.2"""
 
-import random, math, numpy
+import random, math, numpy, MDP
 
 def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILENT=False, PROBABILISTIC_CHOICES=True):
     
@@ -264,5 +264,36 @@ def sanitize_policy(policy):
         if policy == 'LB':    pol = [-20,0,0]
         elif policy == 'SA':  pol = [ 20,0,0]
         elif policy == 'CT':  pol = [  0,0,0]
+        else: pol = [0,0,0] #using CT as a catch-all for when the string is "MIXED_CT" or whatnot
 
     return pol
+
+def convert_to_MDP_pathway(SWMv1_2_pathway):
+    """ Converts a SWMv1_2 pathway into a generic MDP_Pathway object and returns it"""
+    
+    #create a new MDP pathway object, with policy length = 2
+    new_MDP_pw = MDP.MDP_Pathway(2)
+    
+    new_MDP_pw.ID_number = SWMv1_2_pathway["ID Number"]
+    new_MDP_pw.net_value = SWMv1_2_pathway["Total Pathway Value"]
+    new_MDP_pw.actions_1_taken = SWMv1_2_pathway["Suppressions"]
+    new_MDP_pw.actions_0_taken = SWMv1_2_pathway["Timesteps"] - SWMv1_2_pathway["Suppressions"]
+    new_MDP_pw.generation_joint_prob = SWMv1_2_pathway["Joint Probability"]
+    new_MDP_pw.set_generation_policy_parameters(SWMv1_2_pathway["Generation Policy"][:])
+    
+    for i in range(len(SWMv1_2_pathway["States"])):
+        event = MDP.MDP_Event(i)
+        
+        #in SWIMM, the states are each in the following format:
+        #states[i] = [current_vulnerability, current_timber, ev, choice, choice_prob, policy_value, current_reward, i]
+        event.state_length = 2
+        event.state = [1, SWMv1_2_pathway["States"][i][2]]
+        event.action = SWMv1_2_pathway["States"][i][3]
+        event.decision_prob = SWMv1_2_pathway["States"][i][4]
+        event.action_prob = SWMv1_2_pathway["States"][i][5]
+        event.rewards = [SWMv1_2_pathway["States"][i][6]]
+        
+        new_MDP_pw.events.append(event)
+    
+    return new_MDP_pw
+    
