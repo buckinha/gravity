@@ -1,4 +1,4 @@
-"""Functions for heuristic solving"""
+"""Functions for heuristic solving """
 import random
 import numpy
 
@@ -382,8 +382,7 @@ def simple_gradient(objfn, fprime, x0, bounds=None, step_size=0.05, MINIMIZING=T
     summary["Final Position"] = x1
     
     return summary
-
-                    
+    
 
 def simpler_hill_climb(objfn, fprime, x0, step_size=0.2, MINIMIZING=False, max_steps=20, objfn_args=None, fprime_args=None):
     """An extemely simple hill-climbing algorithm with will blindly follow the derivitive for a set number of steps.
@@ -434,9 +433,11 @@ def simpler_hill_climb(objfn, fprime, x0, step_size=0.2, MINIMIZING=False, max_s
             # and every other component gets a proportionally smaller step
             for c in range(len(g_c)):
                 if g_c[c] > 0:
-                    x_c[c] -= abs(g_c[c] / max_g) * step_size
+                    #x_c[c] -= abs(g_c[c] / max_g) * step_size
+                    x_c[c] -= step_size
                 elif g_c[c] < 0:
-                    x_c[c] += abs(g_c[c] / max_g) * step_size
+                    #x_c[c] += abs(g_c[c] / max_g) * step_size
+                    x_c[c] += step_size
                 else:
                     #the gradient equals zero...
                     pass
@@ -449,9 +450,11 @@ def simpler_hill_climb(objfn, fprime, x0, step_size=0.2, MINIMIZING=False, max_s
             # and every other component gets a proportionally smaller step
             for c in range(len(g_c)):
                 if g_c[c] > 0:
-                    x_c[c] += abs(g_c[c] / max_g) * step_size
+                    #x_c[c] += abs(g_c[c] / max_g) * step_size
+                    x_c[c] += step_size
                 elif g_c[c] < 0:
-                    x_c[c] -= abs(g_c[c] / max_g) * step_size
+                    #x_c[c] -= abs(g_c[c] / max_g) * step_size
+                    x_c[c] -= step_size
                 else:
                     #the gradient equals zero...
                     pass
@@ -463,7 +466,207 @@ def simpler_hill_climb(objfn, fprime, x0, step_size=0.2, MINIMIZING=False, max_s
        
     return summary
         
-        
+
+def hill_climb(objfn, x0, step_size=0.1, small_step_size=0.02, greatest_disimprovement=0.5, MINIMIZING=False, max_steps=20, objfn_arg=None):
+    """Uses the objective function to test the nearby area and selects the best choice, or the least disimprovement.
+
+    DESCRIPTION
+    At each step, a series of changes will be tried to the objective function. For each component of
+    the objective function, a new try will be made by increasing that component by a random positive
+    amount (up to step_size in magnitude), with all other components being varied at random up to
+    +/- small_step_size. For that same component, a second try will be made except with the component 
+    being decreased by a random amount up to step_size in magnitude.
+
+    In this way, tries will be made such that all components are varied, at the minimum, in both the
+    positive and negative directions.
+
+    The algorithm will then measure the objective function at each of those locations, and if any of
+    them are improvements, it will chose the greatest improvement. If all locations are disimprovements
+    then, but the best of them is at least better than (greatest_disimprovement * current_value), then
+    the best one will be taken as the next move. If even the best of them is worse than that, then the
+    algortihm terminates.
+
+    The algorithm also terminates if it iterates max_steps times.
+
+
+    ARGUEMENTS
+    objfn: the objective function to be evaluated. Must have signature objfn(x) or objfn(x, arg)
+    
+    x0: starting position, and defines the length of the vector that the algorithm will use.
+    
+    step_size: Each component of the objective function will be varied, both positively and negatively
+    
+    small_step_size: The amount each 'other' component will be varied by (in either +/- directions) 
+    
+    greatest_disimprovement: a percentage. If disimprovements are not above this value * current objfn
+     value, then they will not be accepted.
+    
+    MINIMIZING: A boolean representing whether the algorithm is minimizing the objective function. 
+    If not, then it will maximize (default behavior)
+    
+    max_steps: The maximum number of iterations the algorithm can try before automatically terminating.
+    
+    objfn_arg: A single arguemnt that may be passed into the objective function (in addition to the x vector.)
+
+
+    RETURNS
+    Dictionary with the following elements:
+    "Path": a list of the values of the x vector, in order, that the algorithm tried.
+    "Values": a list of the objective function values of each x vector location
+
+    """
+
+    vector_length = len(x0)
+
+    explore_set = [None] * (vector_length * 2)
+    explore_vals = [None] * (vector_length * 2)
+    path_list = [None] * max_steps
+    value_list = [None] * max_steps
+
+
+    #set starting position
+    x_current = x0[:]
+    value_current = None
+    if objfn_arg:
+        value_current = objfn(x0,objfn_arg)
+    else:
+        value_current = objfn(x0)
+
+
+    #iterate
+    for i in range(max_steps):
+
+        #either the loop just began, or the last iteration found an allowed move;
+        # Either way, add the current position and value to the lists
+        path_list[i] = x_current[:]
+        value_list[i] = value_current
+
+
+        ##### STEP 1 - Build Exploration Set
+
+        #loop over the exploration set vectors. There are twice as many as this, but 
+        # we're adding them two at a time
+        for j in range(vector_length):
+            #get a postive value for the jth component, and random values for all others
+            #reset the current vector at this position
+            explore_set[j] = [None]*vector_length
+
+            for k in range(vector_length):
+                #looping over each component
+                if j==k:
+                    #this is the jth component, so change it POSITIVELY within step_size
+                    explore_set[j][k] = x_current[k] + random.uniform(0,step_size)
+                else:
+                    #this is one of the other components, so change it random +/- small_step_size
+                    explore_set[j][k] = x_current[k] + random.uniform((-1.0 * small_step_size), small_step_size)
+
+
+            #get a negative value for the jth component, and random values for all others
+            #reset the current vector at this position
+            explore_set[j+vector_length] = [None]*vector_length
+
+            for k in range(vector_length):
+                #looping over each component
+                if j==k:
+                    #this is the jth component, so change it NEGATIVELY within step_size
+                    explore_set[j+vector_length][k] = x_current[k] - random.uniform(0,step_size)
+                else:
+                    #this is one of the other components, so change it random +/- small_step_size
+                    explore_set[j+vector_length][k] = x_current[k] + random.uniform((-1.0 * small_step_size), small_step_size)
+
+
+
+        ##### STEP 2 - Get Objfn values for each member of the exploration set
+        for j in range(vector_length*2):
+            if objfn_arg:
+                #an arguement was given, so use it
+                explore_vals[j] = objfn(explore_set[j], x_arg)
+            else:
+                #no arguement was given, so just pass x_current
+                explore_vals[j] = objfn(explore_set[j])
+
+
+
+        ##### STEP 3a - Check for improvements and choose the best
+        best_val = None
+        best_index = None
+        if MINIMIZING: best_val = float("inf")
+        if not MINIMIZING: best_val = float("-inf")
+
+        for j in range(vector_length*2):
+            if MINIMIZING:
+                if explore_vals[j] < best_val:
+                    best_val = explore_vals[j]
+                    best_index = j
+            else:
+                if explore_vals[j] > best_val:
+                    best_val = explore_vals[j]
+                    best_index = j
+
+        IMPROVEMENT_FOUND = False
+        if MINIMIZING:
+            if best_val < value_current:
+                IMPROVEMENT_FOUND = True
+        else:
+            if best_val > value_current:
+                IMPROVEMENT_FOUND = True
+
+        ##### STEP 3b - If there are no improvements, check if the best value is an allowed disimprovement
+        if not IMPROVEMENT_FOUND:
+            if MINIMIZING:
+                if value_current > 0:
+                    #current value is positive, so...
+                    #i.e., if greatest_disimprovement = 0.5, then we'll allow up to 1.5
+                    # and if greatest_dis... = 0.9, we'll allow up to 1.1
+                    if best_val < value_current * (1 + ( 1 - greatest_disimprovement ) ):
+                        IMPROVEMENT_FOUND = True
+                else: #current value is negative...
+                    if best_val < current_val * greatest_disimprovement:
+                        IMPROVEMENT_FOUND = True
+
+            else: #MAXIMIZING            
+                if value_current < 0:
+                    #current value is negative, so...
+                    #i.e., if greatest_disimprovement = 0.5, then we'll allow up to 1.5
+                    # and if greatest_dis... = 0.9, we'll allow up to 1.1
+                    if best_val > value_current * (1 + ( 1 - greatest_disimprovement ) ):
+                        IMPROVEMENT_FOUND = True
+                else: #current value is positive...
+                    if best_val > current_val * greatest_disimprovement:
+                        IMPROVEMENT_FOUND = True
+
+
+        ##### STEP 3c - If there are no improvements OR allowed disimprovements, terminate
+        if not IMPROVEMENT_FOUND:
+            #there are no improvements or allowed disimprovements, so terminate
+            print("")
+            print("..hill_climb() cannot find improvements or allowed disimprovments... terminating")
+            print("..step: " + str(i+1) + " of " + str(max_steps))
+            #print("CURRENT EXPLORATION SET:")
+            #print(str(explore_set))
+            #print("")
+            #print("SET VALUES")
+            #print(str(explore_vals))
+            break
+
+
+        #### STEP 4 - An improvement or allowed disimprovement was found, so update the path and value
+        # lists, and update the current position
+        x_current = explore_set[best_index][:]
+        value_current = best_val
+
+
+
+    #FINISHED
+    #either we ran out of steps or the algorithm quit on its own because it couldn't find
+    # any improvements or allowed disimprovements.
+    summary={}
+    summary["Path"] = path_list
+    summary["Values"] = value_list
+    summary["Final Position"] = x_current[:]
+    summary["Final Value"] = value_current
+       
+    return summary
         
 
 def parabola_1(x):
@@ -474,10 +677,10 @@ def parabola_1_prime(x):
     fx1 = -1
     return [fx0, fx1] 
 
-def hyper_parabola_5_var(x):
+def hyp_par_5_var(x):
     return (x[0]*x[0]) + ((x[1]-1)*(x[1]-1)) + ((x[2]-2)*(x[2]-2)) + ((x[3]-3)*(x[3]-3)) + ((x[4]-4)*(x[4]-4))
 
-def hyper_parabola_5_var_prime(x):
+def hyp_par_5_var_prime(x):
     fx0 = 2*x[0] 
     fx1 = 2*x[1] - 2*1
     fx2 = 2*x[2] - 2*2

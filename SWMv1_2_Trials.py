@@ -331,7 +331,7 @@ def simpler_hill_climb(pathway_count=200, timesteps=150, climbing_steps=20, step
         fprime = MDP_opt.J1prime
     
     
-    x0 = [-1,1]
+    x0 = [0,0]
     #signature is
     #simpler_hill_climb(        objfn, fprime,    x0, step_size=0.5, MINIMIZING=False, max_steps=20,     objfn_args=None,     fprime_args=None):
     result = HKB_Heuristics.simpler_hill_climb(objfn, fprime,    x0, step_size=step_size, MINIMIZING=MINIMIZING, max_steps=climbing_steps, objfn_args=pathways, fprime_args=pathways)
