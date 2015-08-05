@@ -467,7 +467,7 @@ def simpler_hill_climb(objfn, fprime, x0, step_size=0.2, MINIMIZING=False, max_s
     return summary
         
 
-def hill_climb(objfn, x0, step_size=0.1, small_step_size=0.02, greatest_disimprovement=0.5, MINIMIZING=False, max_steps=20, objfn_arg=None):
+def hill_climb(objfn, x0, step_size=0.1, small_step_size=0.02, greatest_disimprovement=0.95, MINIMIZING=False, max_steps=20, objfn_arg=None):
     """Uses the objective function to test the nearby area and selects the best choice, or the least disimprovement.
 
     DESCRIPTION
@@ -580,7 +580,7 @@ def hill_climb(objfn, x0, step_size=0.1, small_step_size=0.02, greatest_disimpro
         for j in range(vector_length*2):
             if objfn_arg:
                 #an arguement was given, so use it
-                explore_vals[j] = objfn(explore_set[j], x_arg)
+                explore_vals[j] = objfn(explore_set[j], objfn_arg)
             else:
                 #no arguement was given, so just pass x_current
                 explore_vals[j] = objfn(explore_set[j])
@@ -621,7 +621,7 @@ def hill_climb(objfn, x0, step_size=0.1, small_step_size=0.02, greatest_disimpro
                     if best_val < value_current * (1 + ( 1 - greatest_disimprovement ) ):
                         IMPROVEMENT_FOUND = True
                 else: #current value is negative...
-                    if best_val < current_val * greatest_disimprovement:
+                    if best_val < value_current * greatest_disimprovement:
                         IMPROVEMENT_FOUND = True
 
             else: #MAXIMIZING            
@@ -632,7 +632,7 @@ def hill_climb(objfn, x0, step_size=0.1, small_step_size=0.02, greatest_disimpro
                     if best_val > value_current * (1 + ( 1 - greatest_disimprovement ) ):
                         IMPROVEMENT_FOUND = True
                 else: #current value is positive...
-                    if best_val > current_val * greatest_disimprovement:
+                    if best_val > value_current * greatest_disimprovement:
                         IMPROVEMENT_FOUND = True
 
 

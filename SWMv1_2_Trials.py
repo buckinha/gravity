@@ -138,6 +138,7 @@ def obj_fn_graph_1(pathway_count_per_point, timesteps, starting_policy, objectiv
 
 
     #create pathway set
+    random.seed(0)
     pathways = [None] * pathway_count_per_point
     for i in range(pathway_count_per_point):
 
@@ -152,7 +153,7 @@ def obj_fn_graph_1(pathway_count_per_point, timesteps, starting_policy, objectiv
         else: p = pol[:]
 
 
-        pw = SWMv1_2.simulate(timesteps=timesteps, policy=p, random_seed=(5000+i), SILENT=True)
+        pw = SWMv1_2.simulate(timesteps=timesteps, policy=p, random_seed=(6500+i), SILENT=True)
         pathways[i] = SWMv1_2.convert_to_MDP_pathway(pw)
 
     #get a sample pathway to pull file header information from
@@ -233,7 +234,7 @@ def obj_fn_graph_1(pathway_count_per_point, timesteps, starting_policy, objectiv
 
     f.close()
 
-def simple_hill_climb(pathway_count=200, timesteps=150, policy="MIXED_CT", objective_function="J3"):
+def SWM_simple_hill_climb(pathway_count=200, timesteps=150, policy="MIXED_CT", objective_function="J3"):
 
     #sanitize policy
     pol = SWMv1_2.sanitize_policy(policy)
@@ -298,7 +299,7 @@ def simple_hill_climb(pathway_count=200, timesteps=150, policy="MIXED_CT", objec
 
     f.close()
     
-def simpler_hill_climb(pathway_count=200, timesteps=150, climbing_steps=20, step_size=0.2, policy="MIXED_CT", objective_function="J3", MINIMIZING=False):
+def SWM_simpler_hill_climb(pathway_count=200, timesteps=150, climbing_steps=20, step_size=0.2, policy="MIXED_CT", objective_function="J3", MINIMIZING=False):
     #sanitize policy
     pol = SWMv1_2.sanitize_policy(policy)
 
@@ -367,3 +368,80 @@ def simpler_hill_climb(pathway_count=200, timesteps=150, climbing_steps=20, step
 
     f.close()
     
+
+def SWM_hill_climb(pathway_count=200, timesteps=150, climbing_steps=20, step_size=0.2, small_step_size=0.04, policy="MIXED_CT", objective_function="J3", MINIMIZING=False):
+
+    
+
+    #sanitize policy
+    pol = SWMv1_2.sanitize_policy(policy)
+
+
+    #create pathways
+    random.seed(0)
+    pathways = [None] * pathway_count
+    for i in range(pathway_count):
+
+        #set up policy
+        p0 = pol[0]
+        p1 = pol[1]
+        #check for interesting policies
+        if policy == "MIXED_CT":
+            p0 = random.uniform(-2,2)
+            p1 = random.uniform(-2,2)
+        elif policy == "MIXED_ALL":
+            p0 = random.uniform(-20,20)
+            p1 = random.uniform(-20,20)
+        p = [p0,p1]
+
+        #simulate has a signature of:
+        #simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILENT=False, PROBABILISTIC_CHOICES=True)
+        pw = SWMv1_2.simulate(timesteps, p, 6500+i, {}, True, True)
+        pathways[i] = SWMv1_2.convert_to_MDP_pathway(pw)
+    
+    #default to J3
+    objfn = MDP_opt.J3
+    fprime = MDP_opt.J3prime
+    if objective_function == "J1":
+        objfn = MDP_opt.J1
+        fprime = MDP_opt.J1prime
+    
+    
+    x0 = [0,0]
+    #signature is
+    #                       hill_climb(objfn, x0, step_size=0.1,       small_step_size=0.02,            greatest_disimprovement=0.95, MINIMIZING=False,      max_steps=20,             objfn_arg=None)
+    result = HKB_Heuristics.hill_climb(objfn, x0, step_size=step_size, small_step_size=small_step_size, greatest_disimprovement=0.9, MINIMIZING=MINIMIZING, max_steps=climbing_steps, objfn_arg=pathways) 
+    
+    #finished gathering output strings, now write them to the file
+    f = open('SWM_hill_climb.txt', 'w')
+
+    #Writing Header
+    f.write("SWMv1_2_Trials.SWM_hill_climb()\n")
+    f.write("\n")
+    f.write("PATHWAY SET INFORMATION:\n")
+    f.write("Pathways Count: " + str(pathway_count) +"\n")
+    f.write("Timesteps per Pathway: " + str(timesteps) +"\n")
+    f.write("Policy: " + str(policy) + "\n")
+    f.write("\n")
+    f.write("HILLCLIMBING INFORMATION:\n")
+    f.write("Hill-climbing steps: " + str(climbing_steps) + "\n")
+    f.write("Step Size: " + str(step_size) + "\n")
+    f.write("Small Step Size: " + str(small_step_size) + "\n")
+    f.write("Objective Function: " + str(objective_function) + "\n")
+    f.write("x0: " + str(x0) + "\n")
+    if MINIMIZING:
+        f.write("HKB_Heuristics.hill_climb() is set to MINIMIZE\n")
+    else:
+        f.write("HKB_Heuristics.hill_climb() is set to MAXIMIZE\n")
+    f.write("\n")
+
+    f.write("P0 P1 ObjFnVal\n")
+    for i in range(len(result["Path"])):
+        #check to see if there is, in fact, a path position here
+        if result["Path"][i]:
+            f.write(str(result["Path"][i][0]) + " ")
+            f.write(str(result["Path"][i][1]) + " ")
+            f.write(str(result["Values"][i]) + "\n")
+
+
+    f.close()
