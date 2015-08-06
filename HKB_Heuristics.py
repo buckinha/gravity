@@ -101,7 +101,6 @@ def threshold(objfn, x0, bounds=None, iter_cap=1000, tolerance=1.1, MINIMIZING=T
 
     return global_best_solution
 
-
 def genetic(objfn, vector_length, bounds=None, iter_cap=500, generation_size=10, mutation_rate=0.10, MINIMIZING=True, seeds=None):
     """A Continuous Genetic Algorithm
     """
@@ -222,7 +221,6 @@ def genetic(objfn, vector_length, bounds=None, iter_cap=500, generation_size=10,
     print("Solution: " + str(mother_set[i]))
 
     return mother_set[i]
-
 
 def simple_gradient(objfn, fprime, x0, bounds=None, step_size=0.05, MINIMIZING=True, USE_RELATIVE_STEP_SIZES=False, max_steps=200):
 
@@ -383,7 +381,6 @@ def simple_gradient(objfn, fprime, x0, bounds=None, step_size=0.05, MINIMIZING=T
     
     return summary
     
-
 def simpler_hill_climb(objfn, fprime, x0, step_size=0.2, MINIMIZING=False, max_steps=20, objfn_args=None, fprime_args=None):
     """An extemely simple hill-climbing algorithm with will blindly follow the derivitive for a set number of steps.
     
@@ -467,7 +464,18 @@ def simpler_hill_climb(objfn, fprime, x0, step_size=0.2, MINIMIZING=False, max_s
     return summary
         
 
-def hill_climb(objfn, x0, step_size=0.1, small_step_size=0.02, greatest_disimprovement=0.95, MINIMIZING=False, max_steps=20, objfn_arg=None):
+def hill_climb(objfn, 
+               x0, 
+               step_size=0.1, 
+               small_step_size=0.02, 
+               greatest_disimprovement=0.95,
+               addl_expl_vectors=10,
+               starburst_vectors=10,
+               starburst_mag=2.0,  
+               MINIMIZING=False, 
+               max_steps=20, 
+               objfn_arg=None):
+
     """Uses the objective function to test the nearby area and selects the best choice, or the least disimprovement.
 
     DESCRIPTION
@@ -483,8 +491,14 @@ def hill_climb(objfn, x0, step_size=0.1, small_step_size=0.02, greatest_disimpro
     The algorithm will then measure the objective function at each of those locations, and if any of
     them are improvements, it will chose the greatest improvement. If all locations are disimprovements
     then, but the best of them is at least better than (greatest_disimprovement * current_value), then
-    the best one will be taken as the next move. If even the best of them is worse than that, then the
-    algortihm terminates.
+    the best one will be taken as the next move. 
+
+    If none of the exploration vectors have values that pass the greatest_disimprovement test, then
+    a 'startburst' step is initiated. A new set of vectors are generated with random components. 
+    Each compononent can fall between +/- (starburst_magnitude * step_size), where starburst_magnitude
+    is intended on being greater than 1. In this way, when the algorithm otherwise can make no progress
+    it makes an amplififed search of the surrounding policy space in all directions. If it can find an
+    improvement, it will take it. (At the moment, it will not accept disimprovements)
 
     The algorithm also terminates if it iterates max_steps times.
 
@@ -501,6 +515,14 @@ def hill_climb(objfn, x0, step_size=0.1, small_step_size=0.02, greatest_disimpro
     greatest_disimprovement: a percentage. If disimprovements are not above this value * current objfn
      value, then they will not be accepted.
     
+    addl_expl_vectors: how many additional exploration vectors to add to each exploration set. These
+     vectors will have random components, each between +/-step_size
+
+    starburst_vectors: how many vectors to use during starburst steps
+
+    starburst_mag: vectors generated during a starburst step have random components, each between
+     +/- (starburst_mag * step_size)
+
     MINIMIZING: A boolean representing whether the algorithm is minimizing the objective function. 
     If not, then it will maximize (default behavior)
     
@@ -518,10 +540,15 @@ def hill_climb(objfn, x0, step_size=0.1, small_step_size=0.02, greatest_disimpro
 
     vector_length = len(x0)
 
-    explore_set = [None] * (vector_length * 2)
-    explore_vals = [None] * (vector_length * 2)
+    explore_set = [None] * (addl_expl_vectors + vector_length * 2)
+    explore_vals = [None] * (addl_expl_vectors + vector_length * 2)
+
+
+    #record_keeping
     path_list = [None] * max_steps
     value_list = [None] * max_steps
+    starburst_history = []
+    exploration_history = []
 
 
     #set starting position
@@ -574,10 +601,17 @@ def hill_climb(objfn, x0, step_size=0.1, small_step_size=0.02, greatest_disimpro
                     #this is one of the other components, so change it random +/- small_step_size
                     explore_set[j+vector_length][k] = x_current[k] + random.uniform((-1.0 * small_step_size), small_step_size)
 
+        #add additional random vectors
+        for j in range(addl_expl_vectors):
+            addl_vec = [None] * vector_length
+            for k in range(vector_length):
+                addl_vec[k] = random.uniform(-1*step_size , step_size)
+            explore_set[2*vector_length + j] = addl_vec[:]
+
 
 
         ##### STEP 2 - Get Objfn values for each member of the exploration set
-        for j in range(vector_length*2):
+        for j in range(addl_expl_vectors + vector_length*2):
             if objfn_arg:
                 #an arguement was given, so use it
                 explore_vals[j] = objfn(explore_set[j], objfn_arg)
@@ -585,6 +619,15 @@ def hill_climb(objfn, x0, step_size=0.1, small_step_size=0.02, greatest_disimpro
                 #no arguement was given, so just pass x_current
                 explore_vals[j] = objfn(explore_set[j])
 
+        #record-keeping: record this exploration set
+        exp_hist = {
+                   "Step" : i,
+                   "Origin" : x_current[:],
+                   "Origin Value" : value_current,
+                   "Vectors" : explore_set[:],
+                   "Values" : explore_vals[:]
+                   }
+        exploration_history.append(exp_hist)
 
 
         ##### STEP 3a - Check for improvements and choose the best
@@ -593,7 +636,7 @@ def hill_climb(objfn, x0, step_size=0.1, small_step_size=0.02, greatest_disimpro
         if MINIMIZING: best_val = float("inf")
         if not MINIMIZING: best_val = float("-inf")
 
-        for j in range(vector_length*2):
+        for j in range(addl_expl_vectors + vector_length*2):
             if MINIMIZING:
                 if explore_vals[j] < best_val:
                     best_val = explore_vals[j]
@@ -636,9 +679,67 @@ def hill_climb(objfn, x0, step_size=0.1, small_step_size=0.02, greatest_disimpro
                         IMPROVEMENT_FOUND = True
 
 
-        ##### STEP 3c - If there are no improvements OR allowed disimprovements, terminate
+        ##### STEP 4 - If there are not even any allowed disimprovements, try the starburst step
         if not IMPROVEMENT_FOUND:
-            #there are no improvements or allowed disimprovements, so terminate
+            #generate starburst vectors
+            starbursts = [None] * starburst_vectors
+            for s in range(starburst_vectors):
+                starbursts[s] = [None] * vector_length
+                for c in range(vector_length):
+                    starbursts[s][c] = random.uniform(-1 * starburst_mag * step_size, starburst_mag * step_size)
+
+            #calculate the values of each starburst vector
+            starburst_values = [None] * starburst_vectors
+            best_sbv = float("-inf")
+            best_sbv_index = None
+            if MINIMIZING: best_sbv = float("inf")
+
+            for s in range(starburst_vectors):
+                if objfn_arg:
+                    starburst_values[s] = objfn(starbursts[s], objfn_arg)
+                else:
+                    starburst_values[s] = objrn(starbursts[s])
+
+                #remember the value if it's the best of the starbursts
+                if MINIMIZING:
+                    if starburst_values[s] < best_sbv:
+                        best_sbv = starburst_values[s]
+                        best_sbv_index = s
+                else:
+                    if starburst_values[s] > best_sbv:
+                        best_sbv = starburst_values[s]
+                        best_sbv_index = s
+
+            #check if the best of the starburst vectors is better than the current position
+            #TODO, if desired, add allowance for disimprovement
+
+            #record_keeping, record these starburst vectors
+            star_hist = {
+                         "Step": i,
+                         "Origin": x_current[:],
+                         "Origin Value" : value_current,
+                         "Vectors" : starbursts[:],
+                         "Vector Values" : starburst_values[:]
+                        }
+            starburst_history.append(star_hist)
+
+
+            if MINIMIZING:
+                if best_sbv < value_current:
+                    IMPROVEMENT_FOUND = True
+                    x_current = starbursts[best_sbv_index][:]
+                    value_current = best_sbv
+            else:
+                if best_sbv > value_current:
+                    IMPROVEMENT_FOUND = True
+                    x_current = starbursts[best_sbv_index][:]
+                    value_current = best_sbv
+
+
+        #### STEP 5 - Terminate if no acceptable moves have been found
+        if not IMPROVEMENT_FOUND:
+            #there are no improvements or allowed disimprovements, even after a starburst
+            #so, terminate.
             print("")
             print("..hill_climb() cannot find improvements or allowed disimprovments... terminating")
             print("..step: " + str(i+1) + " of " + str(max_steps))
@@ -663,9 +764,11 @@ def hill_climb(objfn, x0, step_size=0.1, small_step_size=0.02, greatest_disimpro
     summary={}
     summary["Path"] = path_list
     summary["Values"] = value_list
-    summary["Final Position"] = x_current[:]
+    summary["Final Position"] = x_current
     summary["Final Value"] = value_current
-       
+    summary["Exploration History"] = exploration_history
+    summary["Starburst History"] = starburst_history
+    
     return summary
         
 

@@ -369,7 +369,7 @@ def SWM_simpler_hill_climb(pathway_count=200, timesteps=150, climbing_steps=20, 
     f.close()
     
 
-def SWM_hill_climb(pathway_count=200, timesteps=150, climbing_steps=20, step_size=0.2, small_step_size=0.04, policy="MIXED_CT", objective_function="J3", MINIMIZING=False):
+def SWM_hill_climb(pathway_count=100, timesteps=150, climbing_steps=20, step_size=0.2, small_step_size=0.04, policy="MIXED_CT", objective_function="J3", MINIMIZING=False):
 
     
 
@@ -408,9 +408,29 @@ def SWM_hill_climb(pathway_count=200, timesteps=150, climbing_steps=20, step_siz
     
     
     x0 = [0,0]
-    #signature is
-    #                       hill_climb(objfn, x0, step_size=0.1,       small_step_size=0.02,            greatest_disimprovement=0.95, MINIMIZING=False,      max_steps=20,             objfn_arg=None)
-    result = HKB_Heuristics.hill_climb(objfn, x0, step_size=step_size, small_step_size=small_step_size, greatest_disimprovement=0.9, MINIMIZING=MINIMIZING, max_steps=climbing_steps, objfn_arg=pathways) 
+    #signature ishill_climb(objfn, 
+               #            x0, 
+               #            step_size=0.1, 
+               #            small_step_size=0.02, 
+               #            greatest_disimprovement=0.95,
+               #            addl_expl_vectors=10,
+               #            starburst_vectors=10,
+               #            starburst_mag=2.0,  
+               #            MINIMIZING=False, 
+               #            max_steps=20, 
+               #            objfn_arg=None):
+    
+    result = HKB_Heuristics.hill_climb(objfn=objfn, 
+                                       x0=x0, 
+                                       step_size=step_size, 
+                                       small_step_size=small_step_size, 
+                                       greatest_disimprovement=0.9, 
+                                       addl_expl_vectors=10,
+                                       starburst_vectors=20,
+                                       starburst_mag=2.0,
+                                       MINIMIZING=MINIMIZING, 
+                                       max_steps=climbing_steps, 
+                                       objfn_arg=pathways) 
     
     #finished gathering output strings, now write them to the file
     f = open('SWM_hill_climb.txt', 'w')
