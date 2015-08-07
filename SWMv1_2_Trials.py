@@ -1,6 +1,7 @@
 """SWM v1.2 Trials"""
 
 import MDP, MDP_opt, SWMv1_2, HKB_Heuristics, random, numpy, datetime, HKB_Heuristics
+import os.path
 
 
 def pathway_value_graph_1(pathway_count_per_point, timesteps, p0_range=[-20,20], p1_range=[-20,20], p0_step=0.5, p1_step=0.5, PROBABILISTIC_CHOICES=True, OUTPUT_FOR_SCILAB=True):
@@ -404,7 +405,7 @@ def SWM_hill_climb(pathway_count=100, timesteps=150, climbing_steps=20, step_siz
     fprime = MDP_opt.J3prime
     if objective_function == "J1":
         objfn = MDP_opt.J1
-        fprime = MDP_opt.J1prime
+        #fprime = MDP_opt.J1prime
     
     
     x0 = [0,0]
@@ -433,35 +434,109 @@ def SWM_hill_climb(pathway_count=100, timesteps=150, climbing_steps=20, step_siz
                                        objfn_arg=pathways) 
     
     #finished gathering output strings, now write them to the file
-    f = open('SWM_hill_climb.txt', 'w')
 
-    #Writing Header
-    f.write("SWMv1_2_Trials.SWM_hill_climb()\n")
-    f.write("\n")
-    f.write("PATHWAY SET INFORMATION:\n")
-    f.write("Pathways Count: " + str(pathway_count) +"\n")
-    f.write("Timesteps per Pathway: " + str(timesteps) +"\n")
-    f.write("Policy: " + str(policy) + "\n")
-    f.write("\n")
-    f.write("HILLCLIMBING INFORMATION:\n")
-    f.write("Hill-climbing steps: " + str(climbing_steps) + "\n")
-    f.write("Step Size: " + str(step_size) + "\n")
-    f.write("Small Step Size: " + str(small_step_size) + "\n")
-    f.write("Objective Function: " + str(objective_function) + "\n")
-    f.write("x0: " + str(x0) + "\n")
+    #check if output folder exists:
+    folder = "SWM_HC_Outputs"
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+    f_details = open(os.path.join(folder,"details.txt"),'w')
+    f_path = open(os.path.join(folder,"path.txt"), 'w')
+    f_explore = open(os.path.join(folder,"exploration.txt"),'w')
+    f_expl_dis = open(os.path.join(folder,"explr_dis.txt"),'w')
+    f_expl_impr = open(os.path.join(folder,"explr_impr.txt"),'w')
+    f_starburst = open(os.path.join(folder,"starburst.txt"),'w')
+
+    #Writing Details
+    f_details.write("SWMv1_2_Trials.SWM_hill_climb()\n")
+    f_details.write("\n")
+    f_details.write("PATHWAY SET INFORMATION:\n")
+    f_details.write("Pathways Count: " + str(pathway_count) +"\n")
+    f_details.write("Timesteps per Pathway: " + str(timesteps) +"\n")
+    f_details.write("Policy: " + str(policy) + "\n")
+    f_details.write("\n")
+    f_details.write("HILLCLIMBING INFORMATION:\n")
+    f_details.write("Hill-climbing steps: " + str(climbing_steps) + "\n")
+    f_details.write("Step Size: " + str(step_size) + "\n")
+    f_details.write("Small Step Size: " + str(small_step_size) + "\n")
+    f_details.write("Objective Function: " + str(objective_function) + "\n")
+    f_details.write("x0: " + str(x0) + "\n")
     if MINIMIZING:
-        f.write("HKB_Heuristics.hill_climb() is set to MINIMIZE\n")
+        f_details.write("HKB_Heuristics.hill_climb() is set to MINIMIZE\n")
     else:
-        f.write("HKB_Heuristics.hill_climb() is set to MAXIMIZE\n")
-    f.write("\n")
+        f_details.write("HKB_Heuristics.hill_climb() is set to MAXIMIZE\n")
+    f_details.close()
 
+    #Writing Pathway information
+    f_path.write("SWMv1_2_Trials.SWM_hill_climb()\n")
+    f_path.write("Pathway of the Ascent/Descent\n")
+    f_path.write("(Points are duplicated for use in Scilab.xarrows function")
+    f_path.write("\n")
     f.write("P0 P1 ObjFnVal\n")
     for i in range(len(result["Path"])):
-        #check to see if there is, in fact, a path position here
-        if result["Path"][i]:
+        f.write(str(result["Path"][i][0]) + " ")
+        f.write(str(result["Path"][i][1]) + " ")
+        f.write(str(result["Values"][i]) + "\n")
+
+        #if this is not the first or the last entry, record the position twice
+        #Scilab uses pairs in the vector to define the start and stop position
+        #of each arrow, so the format looks like this:
+        # [arrow1_start_x, arrow1_end_x, arrow2_start_x, arrow2_end_x, etc..]
+        #so in this case, where each arrow starts where the previous ends, 
+        # those coordinates will be repeated twice, except for the first and last
+        #arrows.
+        if (not i==0) and (not i==len(result["Path"])-1):
             f.write(str(result["Path"][i][0]) + " ")
             f.write(str(result["Path"][i][1]) + " ")
             f.write(str(result["Values"][i]) + "\n")
 
+    f_path.close()
 
-    f.close()
+    #writing exploration sets
+
+    #The key "Exploration History" contains a list, and each element is a dictionary
+    #Each dictionary has the following format:
+    #
+    # exp_hist = {
+    #    "Step" : i,
+    #    "Origin" : x_current[:],
+    #    "Origin Value" : value_current,
+    #    "Vectors" : explore_set[:],
+    #    "Values" : explore_vals[:]
+    #    }
+    f_explore.write("SWMv1_2_Trials.SWM_hill_climb()\n")
+    f_explore.write("Exploration Vectors")
+    f_explore.write("\n")
+    f_expl_impr.write("SWMv1_2_Trials.SWM_hill_climb()\n")
+    f_expl_impr.write("Exploration Improving Vectors")
+    f_expl_impr.write("\n")
+    f_expl_dis.write("SWMv1_2_Trials.SWM_hill_climb()\n")
+    f_expl_dis.write("Exploration Disimproving Vectors")
+    f_expl_dis.write("\n")
+
+    #loop over each list member
+    for group in result["Exploration History"]:
+        #for each member, loop over each of it's vectors, and write the start and end points
+        # and their associated values
+
+        for v in range(len(group["Vectors"])):
+            #check for improvement/disimprovement
+            if group["Origin Value"] > group["Values"][v]:
+                #this was an improving vector
+                aslkdjfasldkfj
+            else:
+                #this was a disimproving vector
+                aslkdjfasldkfj
+            #either way, write the vector to the general output
+            aslkdjfasldkfj
+
+
+    f_explore.close()
+    f_expl_dis.close()
+    f_expl_impr.close()
+
+    f_starburst.close()
+
+
+
+

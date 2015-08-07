@@ -560,6 +560,14 @@ def hill_climb(objfn,
         value_current = objfn(x0)
 
 
+    #record the final step index, so that the lists can be trimmed at the end.
+    # otherwise, when iterations terminate because of non-improvement, the
+    # lists have some None values at the end.
+    #
+    #Default case is that all steps were run. If that is not true, the final 
+    #index will be updated inside of the loop at the associated break point
+    final_step = max_steps
+
     #iterate
     for i in range(max_steps):
 
@@ -748,6 +756,9 @@ def hill_climb(objfn,
             #print("")
             #print("SET VALUES")
             #print(str(explore_vals))
+
+            #record the final step, so that the output lists can be trimmed appropriately
+            final_step = i
             break
 
 
@@ -756,6 +767,11 @@ def hill_climb(objfn,
         x_current = explore_set[best_index][:]
         value_current = best_val
 
+
+    #trim the path list so that any extra None values are removed
+    if final_step < max_steps:
+        path_list = path_list[:final_step+1]
+        value_list = value_list[:final_step+1]
 
 
     #FINISHED
