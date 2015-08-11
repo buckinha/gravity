@@ -839,7 +839,7 @@ def normalize_pathway_net_values(pathways, rng=1.0):
         pw.net_value = ( pw.net_value - val_avg ) * norm_mag
 
 
-def J1(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True):
+def J1(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True, RETURN_WEIGHTS=False):
     """Calculate the J1 objective function given a policy and a pathway set
 
     CALCULATION TYPE 
@@ -908,9 +908,12 @@ def J1(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=
         print("J1 Weights:")
         print(str(weights))
 
-    return obj_fn_val
+    if RETURN_WEIGHTS:
+        return [obj_fn_val, weights]
+    else:
+        return obj_fn_val
 
-def J2(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True):
+def J2(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True, RETURN_WEIGHTS=False):
     """Calculate the J2 objective function given a policy and a pathway set
 
     CALCULATION TYPE 
@@ -980,9 +983,12 @@ def J2(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=
         print("J2 Weights:")
         print(str(weights))
 
-    return obj_fn_val
+    if RETURN_WEIGHTS:
+        return [obj_fn_val, weights]
+    else:
+        return obj_fn_val
 
-def J3(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True):
+def J3(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True, RETURN_WEIGHTS=False):
     """Calculate the J3 objective function given a policy and a pathway set
 
     CALCULATION TYPE 
@@ -1055,9 +1061,12 @@ def J3(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=
         print("J3 Weights:")
         print(str(weights))
     
-    return obj_fn_val
+    if RETURN_WEIGHTS:
+        return [obj_fn_val, weights]
+    else:
+        return obj_fn_val
 
-def J4(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True):
+def J4(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True, RETURN_WEIGHTS=False):
     """Calculate the J4 objective function given a policy and a pathway set
 
     CALCULATION TYPE 
@@ -1136,7 +1145,10 @@ def J4(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=
         print("J4 Weights:")
         print(str(weights))
 
-    return obj_fn_val
+    if RETURN_WEIGHTS:
+        return [obj_fn_val, weights]
+    else:
+        return obj_fn_val
 
 def J1prime(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=False, SILENT=True):
     """

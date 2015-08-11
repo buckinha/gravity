@@ -465,7 +465,8 @@ def simpler_hill_climb(objfn, fprime, x0, step_size=0.2, MINIMIZING=False, max_s
         
 
 def hill_climb(objfn, 
-               x0, 
+               x0,
+               bounds=None, 
                step_size=0.1, 
                small_step_size=0.02, 
                greatest_disimprovement=0.95,
@@ -503,10 +504,16 @@ def hill_climb(objfn,
     The algorithm also terminates if it iterates max_steps times.
 
 
+
     ARGUEMENTS
     objfn: the objective function to be evaluated. Must have signature objfn(x) or objfn(x, arg)
     
     x0: starting position, and defines the length of the vector that the algorithm will use.
+
+    bounds: list: each element should itself be a list of the form [lower_bound, upper_bound]
+     associated with the objective function parameter at that same index. Thus, bounds should be
+     the same length as x0. The algorithm will not allow values for objective function parameters
+     outside of these ranges.
     
     step_size: Each component of the objective function will be varied, both positively and negatively
     
@@ -542,6 +549,14 @@ def hill_climb(objfn,
 
     explore_set = [None] * (addl_expl_vectors + vector_length * 2)
     explore_vals = [None] * (addl_expl_vectors + vector_length * 2)
+
+
+    #Sanitize Bounds
+    if not bounds:
+        #no bounds were given, so set them to +/-inf
+        bounds = [None] * vector_length
+        for i in range(vector_length):
+            bounds[i] = [float("-inf"),float("inf")]
 
 
     #record_keeping
@@ -595,6 +610,10 @@ def hill_climb(objfn,
                     #this is one of the other components, so change it random +/- small_step_size
                     explore_set[j][k] = x_current[k] + random.uniform((-1.0 * small_step_size), small_step_size)
 
+                #checking bounds
+                if explore_set[j][k] < bounds[k][0]: explore_set[j][k] = bounds[k][0] + small_step_size
+                if explore_set[j][k] > bounds[k][1]: explore_set[j][k] = bounds[k][1] - small_step_size
+
 
             #get a negative value for the jth component, and random values for all others
             #reset the current vector at this position
@@ -609,12 +628,21 @@ def hill_climb(objfn,
                     #this is one of the other components, so change it random +/- small_step_size
                     explore_set[j+vector_length][k] = x_current[k] + random.uniform((-1.0 * small_step_size), small_step_size)
 
+                #checking bounds
+                if explore_set[j+vector_length][k] < bounds[k][0]: explore_set[j+vector_length][k] = bounds[k][0] + small_step_size
+                if explore_set[j+vector_length][k] > bounds[k][1]: explore_set[j+vector_length][k] = bounds[k][1] - small_step_size
+
         #add additional random vectors
         for j in range(addl_expl_vectors):
             addl_vec = [None] * vector_length
             for k in range(vector_length):
-                addl_vec[k] = random.uniform(-1*step_size , step_size)
+                addl_vec[k] = x_current[k] + random.uniform(-1*step_size , step_size)
+                #checking bounds
+                if addl_vec[k] < bounds[k][0]: addl_vec[k] = bounds[k][0] + small_step_size
+                if addl_vec[k] > bounds[k][1]: addl_vec[k] = bounds[k][1] - small_step_size
+
             explore_set[2*vector_length + j] = addl_vec[:]
+
 
 
 
@@ -694,7 +722,10 @@ def hill_climb(objfn,
             for s in range(starburst_vectors):
                 starbursts[s] = [None] * vector_length
                 for c in range(vector_length):
-                    starbursts[s][c] = random.uniform(-1 * starburst_mag * step_size, starburst_mag * step_size)
+                    starbursts[s][c] = x_current[c] + random.uniform(-1 * starburst_mag * step_size, starburst_mag * step_size)
+                    #checking bounds
+                    if starbursts[s][c] < bounds[c][0]: starbursts[s][c] = bounds[c][0] + small_step_size
+                    if starbursts[s][c] > bounds[c][1]: starbursts[s][c] = bounds[c][1] - small_step_size
 
             #calculate the values of each starburst vector
             starburst_values = [None] * starburst_vectors

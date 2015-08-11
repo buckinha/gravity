@@ -294,6 +294,11 @@ def convert_to_MDP_pathway(SWMv1_2_pathway):
         event.rewards = [SWMv1_2_pathway["States"][i][6]]
         
         new_MDP_pw.events.append(event)
+
+    #everything needed for the MDP object has been filled in, so now
+    # remove the states (at least) and add the rest of the SWM dictionary's entries as metadata
+    SWMv1_2_pathway.pop("States",None)
+    new_MDP_pw.metadata=SWMv1_2_pathway
     
     return new_MDP_pw
     
