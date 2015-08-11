@@ -24,7 +24,7 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
 
 
     #sanitize policy
-    policy = sanitize_policy(policy)
+    pol = sanitize_policy(policy)
 
 
     #REWARD STRUCTURE
@@ -101,7 +101,7 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
         #policy_crossproduct = policy[0] + policy[1]*ev
         #modified logistic policy function
         #                     CONSTANT       COEFFICIENT       SHIFT
-        policy_crossproduct = policy[0] + ( policy[1] * (ev + policy[2]) )
+        policy_crossproduct = pol[0] + ( pol[1] * (ev + pol[2]) )
         if policy_crossproduct > 100: policy_crossproduct = 100
         if policy_crossproduct < -100: policy_crossproduct = -100
 

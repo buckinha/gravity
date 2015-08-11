@@ -11,7 +11,23 @@ def standard_MDP_set(pathway_count, timesteps, policy):
     pathways = [None]*pathway_count
 
     for i in range(pathway_count):
-        pw = SWMv1_2.simulate(timesteps,policy,random_seed=i+8500,SILENT=True)
+        #first, check for interesting policies. I can't use santize_policy in this case because
+        #each pathway needs one and only one policy, and I don't want to upset the random
+        #number generation sequence by having them draw their own MIXED_CT or MIXED_ALL policies
+        pol = [0.0,0.0,0.0]
+        if policy == "MIXED_CT":
+            pol[0] = random.uniform(-2.0,2.0)
+            pol[1] = random.uniform(-2.0,2.0)
+        elif policy == "MIXED_ALL":
+            pol[0] = random.uniform(-20.0,20.0)
+            pol[1] = random.uniform(-20.0,20.0)
+        else:
+            #its not one of the strings which imply changing policies, so now use sanitize_policy
+            # in case it's "CT", "SA", "LB", etc...
+            pol = SWMv1_2.sanitize_policy(policy)
+
+
+        pw = SWMv1_2.simulate(timesteps,pol,random_seed=i+8500,SILENT=True)
         pathways[i] = SWMv1_2.convert_to_MDP_pathway(pw)
 
     return pathways
@@ -321,6 +337,12 @@ def obj_fn_graph_2(pathways, objective_function='J3', p0_range=[-20,20], p1_rang
         w_min[i] = [0.0] * p0_step_count
         w_ave[i] = [0.0] * p0_step_count
 
+    #get the pathways' starting policies
+    starting_pols = [None] * len(pathways)
+    for i in range(len(pathways)):
+        starting_pols[i] = pathways[i].generation_policy_parameters[:]
+
+
     #loop over all rows and columns and populate each point with its obj. fn. value
     for row in range(p1_step_count):
         for col in range(p0_step_count):
@@ -354,6 +376,7 @@ def obj_fn_graph_2(pathways, objective_function='J3', p0_range=[-20,20], p1_rang
     f_w_min = open(os.path.join(folder,"weights_min.txt"), 'w')
     f_w_max = open(os.path.join(folder,"weights_max.txt"), 'w')
     f_w_ave = open(os.path.join(folder,"weights_mean.txt"), 'w')
+    f_start_pols = open(os.path.join(folder,"starting_policies.txt"),'w')
 
     #Writing Header
     f_details.write("SWMv1_2_Trials.objective_function_graph_2()\n")
@@ -393,6 +416,7 @@ def obj_fn_graph_2(pathways, objective_function='J3', p0_range=[-20,20], p1_rang
     f_w_min.write("SWMv1_2_Trials.objective_function_graph_2()\n")
     f_w_max.write("SWMv1_2_Trials.objective_function_graph_2()\n")
     f_w_ave.write("SWMv1_2_Trials.objective_function_graph_2()\n")
+    f_start_pols.write("SWMv1_2_Trials.objective_function_graph_2()\n")
 
     f_objfn.write("Objective Function Values\n\n")
     f_w_var.write("Variance of Pathway Weights\n\n")
@@ -400,6 +424,7 @@ def obj_fn_graph_2(pathways, objective_function='J3', p0_range=[-20,20], p1_rang
     f_w_min.write("Minimum of all the Pathway Weights\n\n")
     f_w_max.write("Maximum of all the Pathway Weights\n\n")
     f_w_ave.write("Mean of the Pathway Weights\n\n")
+    f_start_pols.write("Starting Policies of the Underlying Pathway Set\n\n")
 
 
     #writing map values into all files
@@ -483,6 +508,13 @@ def obj_fn_graph_2(pathways, objective_function='J3', p0_range=[-20,20], p1_rang
             f_w_ave.write("\n")
 
 
+    #writing starting policies
+    for i in range(len(starting_pols)):
+        for j in range(len(starting_pols[i])):
+            f_start_pols.write(str(starting_pols[i][j]) + " ")
+        #close the row
+        f_start_pols.write("\n")
+
 
     f_details.close()
     f_objfn.close()
@@ -491,6 +523,7 @@ def obj_fn_graph_2(pathways, objective_function='J3', p0_range=[-20,20], p1_rang
     f_w_min.close()
     f_w_max.close()
     f_w_ave.close()
+    f_start_pols.close()
 
 
 def SWM_hill_climb(pathway_count=100, timesteps=150, climbing_steps=20, step_size=0.2, small_step_size=0.04, policy="MIXED_CT", objective_function="J3", MINIMIZING=False, OUTPUT_OBJ_FN_MAP=True):

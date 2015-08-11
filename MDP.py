@@ -15,7 +15,7 @@ class MDP_Pathway:
         #information on the policy which was used when this pathway was generated
         #setting initial values to 1. This will mean that, unless they are explicitly set,
         # J3 weights will be equal to J1 weights.
-        self.generation_policy_parameters = [1] * policy_length
+        self.generation_policy_parameters = [1.0] * policy_length
         self.generation_joint_prob = 1.0
 
         #other cumulative measures
