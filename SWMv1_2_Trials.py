@@ -569,6 +569,8 @@ def SWM_hill_climb(pathway_count=100, timesteps=150, climbing_steps=20, step_siz
     x0 = [0,0]
     #signature ishill_climb(objfn, 
                #            x0, 
+               #            objfn_arg=None, 
+               #            bounds=None, 
                #            step_size=0.1, 
                #            small_step_size=0.02, 
                #            greatest_disimprovement=0.95,
@@ -576,13 +578,14 @@ def SWM_hill_climb(pathway_count=100, timesteps=150, climbing_steps=20, step_siz
                #            starburst_vectors=10,
                #            starburst_mag=2.0,  
                #            MINIMIZING=False, 
-               #            max_steps=20, 
-               #            objfn_arg=None):
+               #            max_steps=20):
     
     print("Beginning hill-climbing algorithm")
     print("..time is " + str(datetime.datetime.now()))
     result = HKB_Heuristics.hill_climb(objfn=objfn, 
                                        x0=x0, 
+                                       objfn_arg=pathways,
+                                       bounds=[[-20,20],[-20,20]],
                                        step_size=step_size, 
                                        small_step_size=small_step_size, 
                                        greatest_disimprovement=0.9, 
@@ -590,8 +593,7 @@ def SWM_hill_climb(pathway_count=100, timesteps=150, climbing_steps=20, step_siz
                                        starburst_vectors=20,
                                        starburst_mag=2.0,
                                        MINIMIZING=MINIMIZING, 
-                                       max_steps=climbing_steps, 
-                                       objfn_arg=pathways) 
+                                       max_steps=climbing_steps) 
     
     end_time = "Ended:  " + str(datetime.datetime.now())
     #finished gathering output strings, now write them to the file
@@ -839,6 +841,337 @@ def SWM_hill_climb(pathway_count=100, timesteps=150, climbing_steps=20, step_siz
     f_starburst.close()
     f_star_impr.close()
     f_star_dis.close()
+
+def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, small_step_size=0.04, objective_function="J3", MINIMIZING=False, OUTPUT_OBJ_FN_MAP=True):
+
+    start_time = "Started:  " + str(datetime.datetime.now())
+    
+    #default to J3
+    objfn = MDP_opt.J3
+    fprime = MDP_opt.J3prime
+    if objective_function == "J1":
+        objfn = MDP_opt.J1
+        #fprime = MDP_opt.J1prime
+    
+
+    #signature is multi_hill_climb(objfn, 
+                               # x0_lists, 
+                               # objfn_arg=None,
+                               # bounds=None, 
+                               # step_size=0.1, 
+                               # small_step_size=0.02, 
+                               # greatest_disimprovement=0.95,
+                               # addl_expl_vectors=10,
+                               # starburst_vectors=10,
+                               # starburst_mag=2.0,  
+                               # MINIMIZING=False, 
+                               # max_steps=20)
+    
+    print("Beginning multi-hill-climbing algorithm")
+    print("..time is " + str(datetime.datetime.now()))
+    results = HKB_Heuristics.multi_hill_climb(objfn=objfn, 
+                                       x0_lists=x0_lists, 
+                                       objfn_arg=pathways,
+                                       bounds=[[-20,20],[-20,20]],
+                                       step_size=step_size, 
+                                       small_step_size=small_step_size, 
+                                       greatest_disimprovement=0.9, 
+                                       addl_expl_vectors=10,
+                                       starburst_vectors=20,
+                                       starburst_mag=2.0,
+                                       MINIMIZING=MINIMIZING, 
+                                       max_steps=climbing_steps) 
+    
+    end_time = "Ended:  " + str(datetime.datetime.now())
+    #finished gathering output strings, now write them to the file
+
+    #check if output folder exists:
+    folder = "SWM_HC_Outputs" 
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+
+    if OUTPUT_OBJ_FN_MAP:
+        print("Building objective function map")
+        print("..time is " + str(datetime.datetime.now()))
+        #obj_fn_graph_2(pathways, objective_function='J3', p0_range=[-20,20], p1_range=[-20,20], 
+                                                           #p0_step=0.5, p1_step=0.5, 
+                                                           #OUTPUT_FOR_SCILAB=True, 
+                                                           #folder="obj_fn_graph_2_outputs")
+        obj_fn_graph_2(pathways=pathways,  
+                                   objective_function=objective_function, 
+                                   p0_range=[-20,20], 
+                                   p1_range=[-20,20], 
+                                   p0_step=0.5, 
+                                   p1_step=0.5, 
+                                   OUTPUT_FOR_SCILAB=True,
+                                   folder=folder)
+
+
+    print("")
+    print("Process Complete... writing output files")
+
+
+    #check if output folder exists:
+    folder = "SWM_HC_Outputs" 
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+    f_details = open(os.path.join(folder,"details.txt"),'w')
+    f_path = open(os.path.join(folder,"path.txt"), 'w')
+    f_explore = open(os.path.join(folder,"exploration.txt"),'w')
+    f_expl_dis = open(os.path.join(folder,"explr_dis.txt"),'w')
+    f_expl_impr = open(os.path.join(folder,"explr_impr.txt"),'w')
+    f_starburst = open(os.path.join(folder,"starburst.txt"),'w')
+    f_star_impr = open(os.path.join(folder,"star_impr.txt"),'w')
+    f_star_dis = open(os.path.join(folder,"star_dis.txt"),'w')
+
+    #more files for line graphs of individual climbs
+    f_climbs=[None]*len(x0_lists)
+    for i in range(len(x0_lists)):
+        f_climbs[i] = open(os.path.join(folder,"climb_"+str(i)+".txt"),'w')
+
+    #Writing Details
+    f_details.write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
+    f_details.write("\n")
+    f_details.write(start_time + "\n")
+    f_details.write(end_time + "\n")
+    f_details.write("\n")
+    f_details.write("PATHWAY SET INFORMATION:\n")
+    f_details.write("Pathways Count: " + str(len(pathways)) +"\n")
+    f_details.write("Timesteps per Pathway: " + str(len(pathways[0].events)) +"\n")
+    #f_details.write("Policy: " + str(policy) + "\n")
+    f_details.write("\n")
+    f_details.write("HILLCLIMBING INFORMATION:\n")
+    f_details.write("Hill-climbing steps: " + str(climbing_steps) + "\n")
+    f_details.write("Step Size: " + str(step_size) + "\n")
+    f_details.write("Small Step Size: " + str(small_step_size) + "\n")
+    f_details.write("Objective Function: " + str(objective_function) + "\n")
+    for i in range(len(x0_lists)):
+        f_details.write("x0[" + str(i) + "]: " + str(x0_lists[i]) + "\n")
+    if MINIMIZING:
+        f_details.write("HKB_Heuristics.hill_climb() is set to MINIMIZE\n")
+    else:
+        f_details.write("HKB_Heuristics.hill_climb() is set to MAXIMIZE\n")
+    f_details.close()
+
+    #Writing Pathway information
+    f_path.write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
+    f_path.write("Pathway of the Ascent/Descent\n")
+    f_path.write("(Points are duplicated for use in Scilab.xarrows function)\n")
+    f_path.write("\n")
+    f_path.write("P0 P1 ObjFnVal\n")
+
+    #writing headers for individual climb files
+    for i in range(len(f_climbs)):
+        f_climbs[i].write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
+        f_climbs[i].write("Climb " + str(i) + "\n")
+        f_climbs[i].write("\n")
+        f_climbs[i].write("P0 P1 Value Var logVar STD Ave\n")
+
+    for p in range(len(results)):
+        #record all pathway steps as one long list...
+        #because scilab will treat each in pairs, it'll draw the independent
+        #paths separately if I write them properly
+        for i in range(len(results[p]["Path"])):
+            f_path.write(str(results[p]["Path"][i][0]) + " ")
+            f_path.write(str(results[p]["Path"][i][1]) + " ")
+            f_path.write(str(results[p]["Values"][i]) + "\n")
+
+            #if this is not the first or the last entry, record the position twice
+            #Scilab uses pairs in the vector to define the start and stop position
+            #of each arrow, so the format looks like this:
+            # [arrow1_start_x, arrow1_end_x, arrow2_start_x, arrow2_end_x, etc..]
+            #so in this case, where each arrow starts where the previous ends, 
+            # those coordinates will be repeated twice, except for the first and last
+            #arrows.
+            if (not i==0) and (not i==len(results[p]["Path"])-1):
+                f_path.write(str(results[p]["Path"][i][0]) + " ")
+                f_path.write(str(results[p]["Path"][i][1]) + " ")
+                f_path.write(str(results[p]["Values"][i]) + "\n")
+
+
+            #Also write to individual climb files
+            f_climbs[p].write(str(results[p]["Path"][i][0]) + " ")
+            f_climbs[p].write(str(results[p]["Path"][i][1]) + " ")
+            f_climbs[p].write(str(results[p]["Values"][i]) + " ")
+            f_climbs[p].write(str(results[p]["Weights Variance"][i]) + " ")
+            f_climbs[p].write(str(results[p]["Weights log(Variance)"][i]) + " ")
+            f_climbs[p].write(str(results[p]["Weights STD"][i]) + " ")
+            f_climbs[p].write(str(results[p]["Weights Average"][i]) + "\n")
+
+    f_path.close()
+
+    #close the individual climb files
+    for i in range(len(f_climbs)):
+        f_climbs[i].close()
+
+
+    #writing exploration sets
+
+    f_explore.write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
+    f_explore.write("Exploration Vectors")
+    f_explore.write("\n")
+    f_expl_impr.write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
+    f_expl_impr.write("Exploration Improving Vectors")
+    f_expl_impr.write("\n")
+    f_expl_dis.write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
+    f_expl_dis.write("Exploration Disimproving Vectors")
+    f_expl_dis.write("\n")
+
+    #The key "Exploration History" contains a list, and each element is a dictionary
+    #Each dictionary has the following format:
+    #
+    # exp_hist = {
+    #    "Step" : i,
+    #    "Origin" : x_current[:],
+    #    "Origin Value" : value_current,
+    #    "Vectors" : explore_set[:],
+    #    "Values" : explore_vals[:]
+    #    }
+
+    for p in range(len(results)):
+        #loop over each list member
+        for group in results[p]["Exploration History"]:
+            #for each member, loop over each of it's vectors, and write the start and end points
+            # and their associated values
+
+            for v in range(len(group["Vectors"])):
+
+                #check for improvement/disimprovement
+
+                if (
+                    ((not MINIMIZING) and ( group["Origin Value"] > group["Values"][v] )) or
+                    ((    MINIMIZING) and ( group["Origin Value"] < group["Values"][v] ))
+                   ):
+                    #this was an improving vector
+
+                    #write the origin point
+                    for k in range(len(group["Origin"])):
+                        f_expl_dis.write(str(group["Origin"][k]) + " ")
+                    f_expl_dis.write("\n")
+
+                    #write the target point
+                    for k in range(len(group["Vectors"][v])):
+                        f_expl_dis.write(str(group["Vectors"][v][k]) + " ")
+                    f_expl_dis.write("\n")
+
+                else:
+                    #this was a disimproving vector
+
+                    #write the origin point
+                    for k in range(len(group["Origin"])):
+                        f_expl_impr.write(str(group["Origin"][k]) + " ")
+                    f_expl_impr.write("\n")
+
+                    #write the target point
+                    for k in range(len(group["Vectors"][v])):
+                        f_expl_impr.write(str(group["Vectors"][v][k]) + " ")
+                    f_expl_impr.write("\n")
+
+
+
+                #either way, write the vector to the general output
+                for k in range(len(group["Origin"])):
+                    f_explore.write(str(group["Origin"][k]) + " ")
+                f_explore.write("\n")
+
+                #write the target point
+                for k in range(len(group["Vectors"][v])):
+                    f_explore.write(str(group["Vectors"][v][k]) + " ")
+                f_explore.write("\n")
+
+
+    f_explore.close()
+    f_expl_dis.close()
+    f_expl_impr.close()
+
+
+    #writing starburst vectors
+
+    f_starburst.write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
+    f_starburst.write("Starburst Vectors")
+    f_starburst.write("\n")
+    f_star_impr.write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
+    f_star_impr.write("Starburst Improving Vectors")
+    f_star_impr.write("\n")
+    f_star_dis.write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
+    f_star_dis.write("Starburst Disimproving Vectors")
+    f_star_dis.write("\n")
+
+
+    #The key "Starburst History" contains a list, and each element is a dictionary
+    #Each dictionary has the following format:
+    #
+    # star_hist = {
+    #  "Step": i,
+    #  "Origin": x_current[:],
+    #  "Origin Value" : value_current,
+    #  "Vectors" : starbursts[:],
+    #  "Vector Values" : starburst_values[:]
+    # }
+
+    for p in range(len(results)):
+        #loop over each list member
+        for group in results[p]["Starburst History"]:
+            #for each member, loop over each of it's vectors, and write the start and end points
+            # and their associated values
+
+            for v in range(len(group["Vectors"])):
+
+                #check for improvement/disimprovement
+
+                if (
+                    ((not MINIMIZING) and ( group["Origin Value"] > group["Vector Values"][v] )) or
+                    ((    MINIMIZING) and ( group["Origin Value"] < group["Vector Values"][v] ))
+                   ):
+                    #this was an improving vector
+
+                    #write the origin point
+                    for k in range(len(group["Origin"])):
+                        f_star_impr.write(str(group["Origin"][k]) + " ")
+                    f_star_impr.write("\n")
+
+                    #write the target point
+                    for k in range(len(group["Vectors"][v])):
+                        f_star_impr.write(str(group["Vectors"][v][k]) + " ")
+                    f_star_impr.write("\n")
+
+                else:
+                    #this was a disimproving vector
+
+                    #write the origin point
+                    for k in range(len(group["Origin"])):
+                        f_star_dis.write(str(group["Origin"][k]) + " ")
+                    f_star_dis.write("\n")
+
+                    #write the target point
+                    for k in range(len(group["Vectors"][v])):
+                        f_star_dis.write(str(group["Vectors"][v][k]) + " ")
+                    f_star_dis.write("\n")
+
+
+
+                #either way, write the vector to the general output
+                for k in range(len(group["Origin"])):
+                    f_starburst.write(str(group["Origin"][k]) + " ")
+                f_starburst.write("\n")
+
+                #write the target point
+                for k in range(len(group["Vectors"][v])):
+                    f_starburst.write(str(group["Vectors"][v][k]) + " ")
+                f_starburst.write("\n")
+
+
+    f_starburst.close()
+    f_star_impr.close()
+    f_star_dis.close()
+
+
+
+
+
+
 
 
 

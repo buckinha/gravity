@@ -1,6 +1,5 @@
 """Functions for heuristic solving """
-import random
-import numpy
+import random,numpy,math
 
 
 def threshold(objfn, x0, bounds=None, iter_cap=1000, tolerance=1.1, MINIMIZING=True, SILENT=False):
@@ -465,7 +464,8 @@ def simpler_hill_climb(objfn, fprime, x0, step_size=0.2, MINIMIZING=False, max_s
         
 
 def hill_climb(objfn, 
-               x0,
+               x0, 
+               objfn_arg=None,
                bounds=None, 
                step_size=0.1, 
                small_step_size=0.02, 
@@ -474,8 +474,7 @@ def hill_climb(objfn,
                starburst_vectors=10,
                starburst_mag=2.0,  
                MINIMIZING=False, 
-               max_steps=20, 
-               objfn_arg=None):
+               max_steps=20):
 
     """Uses the objective function to test the nearby area and selects the best choice, or the least disimprovement.
 
@@ -550,7 +549,6 @@ def hill_climb(objfn,
     explore_set = [None] * (addl_expl_vectors + vector_length * 2)
     explore_vals = [None] * (addl_expl_vectors + vector_length * 2)
 
-
     #Sanitize Bounds
     if not bounds:
         #no bounds were given, so set them to +/-inf
@@ -564,6 +562,10 @@ def hill_climb(objfn,
     value_list = [None] * max_steps
     starburst_history = []
     exploration_history = []
+    weights_var = [None] * max_steps
+    weights_std = [None] * max_steps
+    weights_logvar = [None] * max_steps
+    weights_ave = [None] * max_steps
 
 
     #set starting position
@@ -590,7 +592,20 @@ def hill_climb(objfn,
         # Either way, add the current position and value to the lists
         path_list[i] = x_current[:]
         value_list[i] = value_current
+        #to add the weights, we need to compute the objfn at this position...
+        temp_objfn = [None,None]
+        if objfn_arg:
+            #an arguement was given, so use it
+            temp_objfn = objfn(x_current, objfn_arg, RETURN_WEIGHTS=True)
+        else:
+            #no arguement was given, so just pass x_current
+            temp_objfn = objfn(x_current, RETURN_WEIGHTS=True)
 
+        #no record the weights information
+        weights_ave[i] = numpy.mean(temp_objfn[1])
+        weights_var[i] = numpy.var(temp_objfn[1])
+        weights_logvar[i] = math.log(weights_var[i])
+        weights_std[i] = numpy.std(temp_objfn[1])
 
         ##### STEP 1 - Build Exploration Set
 
@@ -811,12 +826,49 @@ def hill_climb(objfn,
     summary={}
     summary["Path"] = path_list
     summary["Values"] = value_list
+    summary["Weights Variance"] = weights_var
+    summary["Weights log(Variance)"] = weights_logvar
+    summary["Weights Average"] = weights_ave
+    summary["Weights STD"] = weights_std
     summary["Final Position"] = x_current
     summary["Final Value"] = value_current
     summary["Exploration History"] = exploration_history
     summary["Starburst History"] = starburst_history
     
     return summary
+
+
+def multi_hill_climb(objfn, 
+               x0_lists, 
+               objfn_arg=None,
+               bounds=None, 
+               step_size=0.1, 
+               small_step_size=0.02, 
+               greatest_disimprovement=0.95,
+               addl_expl_vectors=10,
+               starburst_vectors=10,
+               starburst_mag=2.0,  
+               MINIMIZING=False, 
+               max_steps=20):
+    """
+    Invokes hill_climb() several times, according to the number of initial starting points given.
+
+    ARGUEMENTS
+    x0_lists (second arg): a list of lists. Each sub-list is one starting point for the normal
+    hill_climb() function.
+
+    All other args, see hill_climb()
+
+    RETURNS
+    A list containing the dictionary summaries of each separate hill_climb 
+
+    """
+    results = [None] * len(x0_lists)
+    for i in range(len(x0_lists)):
+        results[i] = hill_climb(objfn,x0_lists[i],objfn_arg,bounds,step_size,small_step_size,greatest_disimprovement,
+                             addl_expl_vectors,starburst_vectors,starburst_mag,MINIMIZING,max_steps)
+
+    return results
         
 
 def parabola_1(x):
