@@ -1,5 +1,5 @@
 """Functions for heuristic solving """
-import random,numpy,math
+import random,numpy,math,MDP
 
 
 def threshold(objfn, x0, bounds=None, iter_cap=1000, tolerance=1.1, MINIMIZING=True, SILENT=False):
@@ -819,9 +819,9 @@ def hill_climb(objfn,
         value_current = best_val
 
         #if desired, also calculate the KL Divergence. To do this requires the MDP pathways
-        # which are assumed to be in the obj_args variable...
+        # which are assumed to be in the objfn_arg variable...
         if calc_KLD:
-            KLD_list[i] = MDP.KLD(obj_args, explore_set[best_index][:])
+            KLD_list[i] = MDP.KLD(objfn_arg, explore_set[best_index][:])
 
 
     #trim the path list so that any extra None values are removed (for when the algorithm terminates
@@ -862,7 +862,7 @@ def multi_hill_climb(objfn,
                starburst_mag=2.0,  
                MINIMIZING=False, 
                max_steps=20,
-               calc_KLD):
+               calc_KLD=False):
     """
     Invokes hill_climb() several times, according to the number of initial starting points given.
 

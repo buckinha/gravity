@@ -901,7 +901,8 @@ def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, s
                                        starburst_vectors=20,
                                        starburst_mag=2.0,
                                        MINIMIZING=MINIMIZING, 
-                                       max_steps=climbing_steps) 
+                                       max_steps=climbing_steps,
+                                       calc_KLD=True) 
     
     end_time = "Ended:  " + str(datetime.datetime.now())
     #finished gathering output strings, now write them to the file
@@ -988,7 +989,7 @@ def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, s
         f_climbs[i].write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
         f_climbs[i].write("Climb " + str(i) + "\n")
         f_climbs[i].write("\n")
-        f_climbs[i].write("P0 P1 Value Var logVar STD Ave\n")
+        f_climbs[i].write("P0 P1 Value Var logVar STD Ave KLD\n")
 
     for p in range(len(results)):
         #record all pathway steps as one long list...
@@ -1019,7 +1020,8 @@ def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, s
             f_climbs[p].write(str(results[p]["Weights Variance"][i]) + " ")
             f_climbs[p].write(str(results[p]["Weights log(Variance)"][i]) + " ")
             f_climbs[p].write(str(results[p]["Weights STD"][i]) + " ")
-            f_climbs[p].write(str(results[p]["Weights Average"][i]) + "\n")
+            f_climbs[p].write(str(results[p]["Weights Average"][i]) + " ")
+            f_climbs[p].write(str(results[p]["KL Divergence"][i]) + "\n")
 
     f_path.close()
 

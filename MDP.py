@@ -353,7 +353,7 @@ def crossproduct(vector1, vector2):
 
 def KLD(pathways, new_pol):
     """
-    Calculates the Kullback–Leibler divergence of the new policy "new_pol" from the true policy 
+    Calculates the Kullback-Leibler divergence of the new policy "new_pol" from the true policy 
     which is assumed to be the policy that generated each MDP pathway in the "pathways" list.
 
     ARGUEMENTS:
