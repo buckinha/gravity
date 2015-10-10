@@ -844,6 +844,27 @@ def SWM_hill_climb(pathway_count=100, timesteps=150, climbing_steps=20, step_siz
 
 def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, small_step_size=0.04, objective_function="J3", MINIMIZING=False, OUTPUT_OBJ_FN_MAP=True):
 
+    """
+    ARGUEMENTS
+
+    pathways: a list of MDP pathways, typically generated from standard_MDP_set(...)
+
+    x0_lists: a list containing the starting policies for each restart of the hillclimbing algorithm
+
+    climbing_steps: how many iterations each climb is allowed to take before forcing it to terminate
+
+    step_size: the constant stepsize for the main axis of the hillclimb's route
+
+    small_step_size: the constant stepsize for the the secondary axes of the hillclimb's route
+
+    objective_function: currently allowed to be "J1" "J2" "J3" etc... as per the MDP software
+
+    MINIMIZING: whether to tell the MDP software to miminize (True) or maximize (False)
+
+    OUTPUT_OBJ_FN_MAP: if set to True, at the end of the hillclimbings, a Monte Carlo-based map of the
+     true objective function will be constructed (rather than the surrogate objfn's used elsewhere)
+    """
+
     start_time = "Started:  " + str(datetime.datetime.now())
     
     #default to J3

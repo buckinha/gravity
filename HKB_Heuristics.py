@@ -474,7 +474,8 @@ def hill_climb(objfn,
                starburst_vectors=10,
                starburst_mag=2.0,  
                MINIMIZING=False, 
-               max_steps=20):
+               max_steps=20,
+               calc_KLD=False):
 
     """Uses the objective function to test the nearby area and selects the best choice, or the least disimprovement.
 
@@ -567,6 +568,9 @@ def hill_climb(objfn,
     weights_logvar = [None] * max_steps
     weights_ave = [None] * max_steps
 
+    #if KL Divergence is to be calculated, have an array ready
+    if calc_KLD: KLD_list = [None] * max_steps
+
 
     #set starting position
     x_current = x0[:]
@@ -601,11 +605,12 @@ def hill_climb(objfn,
             #no arguement was given, so just pass x_current
             temp_objfn = objfn(x_current, RETURN_WEIGHTS=True)
 
-        #no record the weights information
+        #now record the weights information
         weights_ave[i] = numpy.mean(temp_objfn[1])
         weights_var[i] = numpy.var(temp_objfn[1])
         weights_logvar[i] = math.log(weights_var[i])
         weights_std[i] = numpy.std(temp_objfn[1])
+
 
         ##### STEP 1 - Build Exploration Set
 
@@ -813,8 +818,14 @@ def hill_climb(objfn,
         x_current = explore_set[best_index][:]
         value_current = best_val
 
+        #if desired, also calculate the KL Divergence. To do this requires the MDP pathways
+        # which are assumed to be in the obj_args variable...
+        if calc_KLD:
+            KLD_list[i] = MDP.KLD(obj_args, explore_set[best_index][:])
 
-    #trim the path list so that any extra None values are removed
+
+    #trim the path list so that any extra None values are removed (for when the algorithm terminates
+    # before hitting it's max iterations)
     if final_step < max_steps:
         path_list = path_list[:final_step+1]
         value_list = value_list[:final_step+1]
@@ -834,6 +845,7 @@ def hill_climb(objfn,
     summary["Final Value"] = value_current
     summary["Exploration History"] = exploration_history
     summary["Starburst History"] = starburst_history
+    summary["KL Divergence"] = KLD_list
     
     return summary
 
@@ -849,7 +861,8 @@ def multi_hill_climb(objfn,
                starburst_vectors=10,
                starburst_mag=2.0,  
                MINIMIZING=False, 
-               max_steps=20):
+               max_steps=20,
+               calc_KLD):
     """
     Invokes hill_climb() several times, according to the number of initial starting points given.
 
@@ -866,7 +879,7 @@ def multi_hill_climb(objfn,
     results = [None] * len(x0_lists)
     for i in range(len(x0_lists)):
         results[i] = hill_climb(objfn,x0_lists[i],objfn_arg,bounds,step_size,small_step_size,greatest_disimprovement,
-                             addl_expl_vectors,starburst_vectors,starburst_mag,MINIMIZING,max_steps)
+                             addl_expl_vectors,starburst_vectors,starburst_mag,MINIMIZING,max_steps,calc_KLD)
 
     return results
         

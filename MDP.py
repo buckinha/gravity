@@ -350,3 +350,44 @@ def crossproduct(vector1, vector2):
             total += vector1[i] * vector2[i]
 
         return total
+
+def KLD(pathways, new_pol):
+    """
+    Calculates the Kullback–Leibler divergence of the new policy "new_pol" from the true policy 
+    which is assumed to be the policy that generated each MDP pathway in the "pathways" list.
+
+    ARGUEMENTS:
+
+    pathways: a list of MDP.Pathway objects
+
+    new_pol: a list containing the parameters of the policy under question
+
+
+
+    EXPLANATION:
+
+    The KL Divergence is calculated as:
+
+    KLD = SUM_p(  SUM_i(  P(i) * ln(P(i)/Q(i))  )   )
+
+    where "p" is the number of pathways, and "i" is the number of events in pathway "p"
+
+    and P(i) is the action probability of event "i" under the true distribution (in this case, the one
+        that was used in the generation of pathway[i], (techically each policy for each pathway should
+         all be the same...)) 
+
+    and Q(i) is the action probability under the new polciy for that same event
+    """
+
+    KLD = 0.0
+
+    for pw in pathways:
+        for i in range(len(pw.events)):
+            p_i = pw.events[i].action_prob
+            q_i = logistic( crossproduct(new_pol, pw.events[i].state ) )
+            #sanitizing near-zero probabilities 
+            if q_i < 0.001: q_i = 0.001
+
+            KLD += p_i * math.log( p_i / q_i )
+
+    return KLD
