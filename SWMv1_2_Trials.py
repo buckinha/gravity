@@ -842,7 +842,7 @@ def SWM_hill_climb(pathway_count=100, timesteps=150, climbing_steps=20, step_siz
     f_star_impr.close()
     f_star_dis.close()
 
-def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, small_step_size=0.04, objective_function="J3", MINIMIZING=False, OUTPUT_OBJ_FN_MAP=True):
+def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, small_step_size=0.04, objective_function="J3", MINIMIZING=False, OUTPUT_OBJ_FN_MAP=True, OUTPUT_CLIMB_MC=True):
 
     """
     ARGUEMENTS
@@ -913,6 +913,29 @@ def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, s
         os.makedirs(folder)
 
 
+
+    #if indicated in the input args, to M.C. evaluations at each point on the paths of each climb
+    climb_MC_values = [None] * len(results)
+    climb_MC_STD = [None] * len(results)
+    MC_repeats = 100
+    if OUTPUT_CLIMB_MC:
+        for r in range(len(results)):
+            climb_MC_values[r] = [None] * len(results[r]["Path"])
+            climb_MC_STD[r] = [None] * len(results[r]["Path"])
+            for p in range(len(results[r]["Path"])):
+                #at this policy (which is one position along the path) do "n" monte carlo simulations
+                # and record the average value of the resulting pathways
+                seed = (r*5000 + p*500)
+                sim_results = [0.0] * MC_repeats
+                for i in range(MC_repeats):
+                    sim = SWMv1_2.simulate(len(pathways[0].events), results[r][p], random_seed=seed+i, SILENT=True)
+                    sim_results[i] = sim["Average State Value"]
+                
+                climb_MC_values = numpy.mean(sim_results)
+                climb_MC_STD = numpy.std(sim_results)
+
+
+    #if indicated in the input args, construct a map of the "true" obj fn using Monte Carlo simulations
     if OUTPUT_OBJ_FN_MAP:
         print("Building objective function map")
         print("..time is " + str(datetime.datetime.now()))
@@ -989,7 +1012,7 @@ def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, s
         f_climbs[i].write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
         f_climbs[i].write("Climb " + str(i) + "\n")
         f_climbs[i].write("\n")
-        f_climbs[i].write("P0 P1 Value Var logVar STD Ave KLD\n")
+        f_climbs[i].write("P0 P1 Value Var logVar STD Ave KLD MC_Val MC_STD\n")
 
     for p in range(len(results)):
         #record all pathway steps as one long list...
@@ -1021,7 +1044,9 @@ def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, s
             f_climbs[p].write(str(results[p]["Weights log(Variance)"][i]) + " ")
             f_climbs[p].write(str(results[p]["Weights STD"][i]) + " ")
             f_climbs[p].write(str(results[p]["Weights Average"][i]) + " ")
-            f_climbs[p].write(str(results[p]["KL Divergence"][i]) + "\n")
+            f_climbs[p].write(str(results[p]["KL Divergence"][i]) + " ")
+            f_climbs[p].write(str(climb_MC_values[p][i]) + " ")
+            f_climbs[p].write(str(climb_MC_STD[p][i] + "\n")
 
     f_path.close()
 

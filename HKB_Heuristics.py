@@ -592,7 +592,7 @@ def hill_climb(objfn,
     #iterate
     for i in range(max_steps):
 
-        #either the loop just began, or the last iteration found an allowed move;
+        #either the loop just began, or the previous iteration found an allowed move;
         # Either way, add the current position and value to the lists
         path_list[i] = x_current[:]
         value_list[i] = value_current
