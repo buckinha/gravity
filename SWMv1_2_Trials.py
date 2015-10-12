@@ -919,7 +919,12 @@ def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, s
     climb_MC_STD = [None] * len(results)
     MC_repeats = 100
     if OUTPUT_CLIMB_MC:
+        print("Doing MC evaluation at each path step")
+        print("..time is " + str(datetime.datetime.now()))
         for r in range(len(results)):
+            #print(str(climb_MC_values))
+            #print("r = " + str(r))
+            #print("len(results[r][\"Path\") = " + str(len(results[r]["Path"])))
             climb_MC_values[r] = [None] * len(results[r]["Path"])
             climb_MC_STD[r] = [None] * len(results[r]["Path"])
             for p in range(len(results[r]["Path"])):
@@ -928,11 +933,11 @@ def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, s
                 seed = (r*5000 + p*500)
                 sim_results = [0.0] * MC_repeats
                 for i in range(MC_repeats):
-                    sim = SWMv1_2.simulate(len(pathways[0].events), results[r][p], random_seed=seed+i, SILENT=True)
+                    sim = SWMv1_2.simulate(len(pathways[0].events), results[r]["Path"][p], random_seed=seed+i, SILENT=True)
                     sim_results[i] = sim["Average State Value"]
                 
-                climb_MC_values = numpy.mean(sim_results)
-                climb_MC_STD = numpy.std(sim_results)
+                climb_MC_values[r][p] = numpy.mean(sim_results)
+                climb_MC_STD[r][p] = numpy.std(sim_results)
 
 
     #if indicated in the input args, construct a map of the "true" obj fn using Monte Carlo simulations
@@ -955,7 +960,7 @@ def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, s
 
     print("")
     print("Process Complete... writing output files")
-
+    print("..time is " + str(datetime.datetime.now()))
 
     #check if output folder exists:
     folder = "SWM_HC_Outputs" 
@@ -1046,7 +1051,7 @@ def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, s
             f_climbs[p].write(str(results[p]["Weights Average"][i]) + " ")
             f_climbs[p].write(str(results[p]["KL Divergence"][i]) + " ")
             f_climbs[p].write(str(climb_MC_values[p][i]) + " ")
-            f_climbs[p].write(str(climb_MC_STD[p][i] + "\n")
+            f_climbs[p].write(str(climb_MC_STD[p][i]) + "\n")
 
     f_path.close()
 

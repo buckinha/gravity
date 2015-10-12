@@ -608,7 +608,7 @@ def hill_climb(objfn,
         #now record the weights information
         weights_ave[i] = numpy.mean(temp_objfn[1])
         weights_var[i] = numpy.var(temp_objfn[1])
-        weights_logvar[i] = math.log(weights_var[i])
+        weights_logvar[i] = 0 #just killing this one... math.log(weights_var[i])
         weights_std[i] = numpy.std(temp_objfn[1])
 
 
