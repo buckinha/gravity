@@ -2,7 +2,7 @@
 Generic MDP Pathway Module
 
 """
-import numpy, math
+import numpy, math, scipy.stats
 
 
 class MDP_Pathway:
@@ -353,8 +353,12 @@ def crossproduct(vector1, vector2):
 
 def KLD(pathways, new_pol):
     """
+
     Calculates the Kullback-Leibler divergence of the new policy "new_pol" from the true policy 
     which is assumed to be the policy that generated each MDP pathway in the "pathways" list.
+    
+    NOTE: For the moment, mine's coming out different (occasionally negative) than scipy's, so I'm just
+    using scipy's for now.
 
     ARGUEMENTS:
 
@@ -372,22 +376,55 @@ def KLD(pathways, new_pol):
 
     where "p" is the number of pathways, and "i" is the number of events in pathway "p"
 
-    and P(i) is the action probability of event "i" under the true distribution (in this case, the one
+    and P(i) is the decision probability of event "i" under the true distribution (in this case, the one
         that was used in the generation of pathway[i], (techically each policy for each pathway should
-         all be the same...)) 
+         all be the same...)) In other words, the probability that this new policy making the decision 
+         that was made vs the probability under the original simulation
 
     and Q(i) is the action probability under the new polciy for that same event
+
+
+    From what I have been able to find out, the sums of Q(i) and P(i) should both be one for this to work.
+    The calculation is also implemented by scipy.stats.entropy(pk, qk=None, base=None), which automatically
+    normalizes the sums to one.
     """
 
-    KLD = 0.0
-
+    #construct a single array of all events from all pathways
+    #find out how many events there are:
+    event_count = 0
     for pw in pathways:
-        for i in range(len(pw.events)):
-            p_i = pw.events[i].action_prob
-            q_i = logistic( crossproduct(new_pol, pw.events[i].state ) )
-            #sanitizing near-zero probabilities 
-            if q_i < 0.001: q_i = 0.001
+        event_count += len(pw.events)
+    pk = [None] * event_count
+    qk = [None] * event_count
 
-            KLD += p_i * math.log( p_i / q_i )
+    #fill the 1-D arrays, and grab the sums over p and q for the normalization step
+    pk_sum = 0
+    qk_sum = 0
+    i = -1 #the first assignment starts by incrementing i, so it will actually begin at i=0
+    for pw in pathways:
+        for e in pw.events:
+            i+=1
+            pk[i] = e.action_prob
+            qk[i] = logistic(  crossproduct(new_pol, e.state )  )
+            #pk_sum += pk[i]
+            #qk_sum += qk[i]
 
-    return KLD
+    #now sum up the KL Divergence, doing the division(normalization-to-1) step in the process
+    #KLD = 0.0
+    #for j in range(event_count):
+        # pk[i] = pk[i] / pk_sum
+        # qk[i] = qk[i] / qk_sum
+        # KLD += pk[i] * math.log( pk[i] / qk[i] )
+
+        #alternatively:  (is there any difference?)
+    #    KLD += (pk[i]/pk_sum) * math.log( (pk[i]/pk_sum) / (qk[i]/qk_sum) )
+
+    
+    #compute it with scipi for a comparison
+    KLD_scipy = scipy.stats.entropy(pk,qk)
+
+    #print("")
+    #print("KLD =      " + str(KLD))
+    #print("KLDscipy = " + str(KLD_scipy))
+
+    return KLD_scipy
