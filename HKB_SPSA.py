@@ -19,8 +19,8 @@ def SPSA(x0, alpha, objfn, objfn_args=None, random_seed=None):
     """
 
     #set the random number generator, if desired.
-    if random_seed:
-        random.seed(random_seed)
+    #if random_seed:
+    #    random.seed(random_seed)
 
     n = len(x0)
     v_plus = [0.0] * n
@@ -56,7 +56,7 @@ def SPSA(x0, alpha, objfn, objfn_args=None, random_seed=None):
     return SPSA_grad
 
 
-def SPSA_KLD_Climb(objfn, x0, alpha=0.1, gamma=None, epsilon = 0.0001, max_steps=50, retries=10, KLD_constraint=None, objfn_args=None, MINIMIZING=False):
+def SPSA_KLD_Climb(objfn, x0, alpha=0.1, max_gradient=0.5, gamma=None, epsilon = 0.0001, max_steps=50, retries=10, KLD_constraint=2.0, objfn_args=None, MINIMIZING=False):
     """Hill-climbing using an SPSA gradient apprximation, with optional KL Divergence constraint
 
     This function does a single hill climb using Spall's Simultaneous Perturbation Stochastic 
@@ -79,6 +79,9 @@ def SPSA_KLD_Climb(objfn, x0, alpha=0.1, gamma=None, epsilon = 0.0001, max_steps
 
     alpha: the scalar step-size for each parameter. That is, when each parameter is perturbed, it will
      be by an amount equal to +/- alpha
+
+    max_gradient: the maximum allowed value for the gradient. If the SPSA value is above this for any
+     parameter, that parameter will be set to 0.5 (retaining its sign, as well)
 
     gamma: the decay rate on step-size. If set to 1.0, or "None", the step size will remain constant.
      Otherwise, the step size (that is, the perturbation size on each parameter) at iteration "k"
@@ -146,6 +149,8 @@ def SPSA_KLD_Climb(objfn, x0, alpha=0.1, gamma=None, epsilon = 0.0001, max_steps
     step_positions = [None] * max_steps
     step_values = [None] * max_steps
     step_KLD = [0.0] * max_steps
+    step_weight_means = [0.0] * max_steps
+    step_weight_STDs = [0.0] * max_steps
 
 
     #Compute the values for the alpha vector
@@ -206,15 +211,33 @@ def SPSA_KLD_Climb(objfn, x0, alpha=0.1, gamma=None, epsilon = 0.0001, max_steps
             #compute the gradient
             new_gradient = SPSA(x_current, alpha_vec[i], objfn, objfn_args)
 
+            #enforce max gradient
+            for i in range(n):
+                if new_gradient[i] > max_gradient: new_gradient[i] = max_gradient
+                if new_gradient[i] < -1 * max_gradient: new_gradient[i] = -1 * max_gradient
+
+            print(str(new_gradient))
+
             #make the step
             new_position = vector_add(new_gradient, x_current)
 
             #get the new objfn value
+            J4_return = []
             new_value = 0.0
             if objfn_args:
-                new_value = objfn(new_position, objfn_args)
+                J4_return = objfn(new_position, objfn_args, RETURN_WEIGHTS=True)
             else:
-                new_value = objfn(new_position)
+                J4_return = objfn(new_position, RETURN_WEIGHTS=True)
+
+            #seperate out the return values
+            new_value = J4_return[0]
+
+            #since this is happening inside of the "Retries" section, these values
+            # will continue to be overwritten until one is accepted or until the last
+            # one is rejected.
+            step_weight_means[step] = numpy.mean(J4_return[1])
+            step_weight_STDs[step] = numpy.std(J4_return[1])
+
 
             #the comparisons below are for maximization, so if we're minimizing, just flip the signs
             if MINIMIZING: new_value += -1.0
@@ -263,6 +286,8 @@ def SPSA_KLD_Climb(objfn, x0, alpha=0.1, gamma=None, epsilon = 0.0001, max_steps
         step_positions = step_positions[:step_count+1]
         step_values = step_values[:step_count+1]
         step_KLD = step_KLD[:step_count+1]
+        step_weight_means = step_weight_means[:step_count+1]
+        step_weight_STDs = step_weight_STDs[:step_count+1]
 
     #Prepare return value
     summary = {}
@@ -271,6 +296,8 @@ def SPSA_KLD_Climb(objfn, x0, alpha=0.1, gamma=None, epsilon = 0.0001, max_steps
     summary["Path"] = step_positions
     summary["Path Values"] = step_values
     summary["KL Divergences"] = step_KLD
+    summary["Path Weight Means"] = step_weight_means
+    summary["Path Weight STDs"] = step_weight_STDs
     summary["Steps Taken"] = step_count
     summary["Message"] = message
     summary["Start Time"] = start_time
@@ -341,6 +368,8 @@ def output_to_file(filename, summary):
     summary["Path"] = step_positions
     summary["Path Values"] = step_values
     summary["KL Divergences"] = step_KLD
+    summary["Path Weight Means"] = step_weight_means
+    summary["Path Weight STDs"] = step_weight_STDs
     summary["Steps Taken"] = step_count
     summary["Message"] = message
     summary["Start Time"]
@@ -387,7 +416,7 @@ def output_to_file(filename, summary):
     f_climb.write("\n")
     for i in range(len(summary["Path"][0])):
         f_climb.write("P" + str(i) + " ")
-    f_climb.write("Value KLD")
+    f_climb.write("Value KLD Weight_Mean Weight_STD")
     if "MC Values" in summary.keys(): f_climb.write(" MC_Val MC_STD")
     f_climb.write("\n")
 
@@ -400,7 +429,9 @@ def output_to_file(filename, summary):
 
         #write this step's details
         f_climb.write( str( summary["Path Values"][i]) + " ")
-        f_climb.write( str( summary["KL Divergences"][i]))
+        f_climb.write( str( summary["KL Divergences"][i]) + " ")
+        f_climb.write( str( summary["Path Weight Means"][i]) + " ")
+        f_climb.write( str( summary["Path Weight STDs"][i]) )
 
         #check if MC results have been appended, and if so, print them too
         if "MC Values" in summary.keys():

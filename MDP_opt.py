@@ -1104,7 +1104,7 @@ def J4(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=
     for p in range(len(pathways)):
         #in J4, the weight is the joint probability of this policy having
         # resulted in the pathway's series of decisions, divided by the sum of all
-        # the joint probabilities, making it a zero-sum game
+        # the joint probabilities, making it a sum-to-one game
 
         pw_joint_prob = 1.0
 
@@ -1128,18 +1128,19 @@ def J4(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=
         J1_weights[p] = pw_joint_prob
         weight_sum += pw_joint_prob
 
+    
+
     #now use the J1 weights and the sum to calculate the J4 weights
     for p in range(len(pathways)):
         weights[p] = J1_weights[p] / weight_sum
 
 
 
-    #In J3, the objective function is the cross-product of the probabiltiy weights and net values
+    #In J4, objective function is the cross-product of the probabiltiy weights and net values
+    # but since the weights sum to one, we do not need to divide the outcome by the number of 
+    # pathways, as that effect will already be handled.
     obj_fn_val = MDP.crossproduct(values, weights)
 
-    #and to make it comparabile to obj fn vals from sets with different pathway numbers, divide by
-    #  the number of pathways
-    obj_fn_val = obj_fn_val / len(pathways)
 
     if not SILENT:
         print("J4 Weights:")
