@@ -3,7 +3,7 @@
 import MDP, MDP_opt, SWMv1_2, HKB_Heuristics, random, numpy, datetime, HKB_Heuristics
 import os.path
 
-def standard_MDP_set(pathway_count, timesteps, policy):
+def standard_MDP_set(pathway_count, timesteps, policy, random_seed=0):
     """
     Generates a set of SWM v1.2 pathways and returns them as a list of MDP pathway objects
     """
@@ -27,7 +27,7 @@ def standard_MDP_set(pathway_count, timesteps, policy):
             pol = SWMv1_2.sanitize_policy(policy)
 
 
-        pw = SWMv1_2.simulate(timesteps,pol,random_seed=i+8500,SILENT=True)
+        pw = SWMv1_2.simulate(timesteps,pol,random_seed=i+8500+random_seed,SILENT=True)
         pathways[i] = SWMv1_2.convert_to_MDP_pathway(pw)
 
     return pathways
