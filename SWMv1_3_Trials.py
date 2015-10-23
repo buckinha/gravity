@@ -82,11 +82,11 @@ def pathway_value_graph_1(pathway_count_per_point, timesteps, p0_range=[-20,20],
     f = open('pathway_value_graph_1.txt', 'w')
 
     #Writing Header
-    f.write("SWMv1_2_Trials.pathway_value_graph_1()\n")
+    f.write("SWMv1_3_Trials.pathway_value_graph_1()\n")
     if VALUE_ON_HABITAT:
-        f.write("Values are of the Habitat Value index")
+        f.write("Values are of the Habitat Value index\n")
     else:
-        f.write("Values are of Logging Receipts - Suppression Cost")
+        f.write("Values are of Logging Receipts - Suppression Cost\n")
     f.write(start_time + "\n")
     f.write(end_time + "\n")
     f.write("Pathways per Point: " + str(pathway_count_per_point) +"\n")
@@ -217,7 +217,7 @@ def obj_fn_graph_1(pathway_count_per_point, timesteps, starting_policy, objectiv
     f = open(filename, 'w')
 
     #Writing Header
-    f.write("SWMv1_2_Trials.objective_function_graph_1()\n")
+    f.write("SWMv1_3_Trials.objective_function_graph_1()\n")
     f.write(start_time + "\n")
     f.write(end_time + "\n")
     f.write("Pathways per Point: " + str(pathway_count_per_point) +"\n")
@@ -386,7 +386,7 @@ def obj_fn_graph_2(pathways, objective_function='J3', p0_range=[-20,20], p1_rang
     f_start_pols = open(os.path.join(folder,"starting_policies.txt"),'w')
 
     #Writing Header
-    f_details.write("SWMv1_2_Trials.objective_function_graph_2()\n")
+    f_details.write("SWMv1_3_Trials.objective_function_graph_2()\n")
     f_details.write(start_time + "\n")
     f_details.write(end_time + "\n")
     f_details.write("Pathways per Point: " + str(len(pathways)) +"\n")
@@ -538,7 +538,7 @@ def SWM_hill_climb(pathway_count=100, timesteps=150, climbing_steps=20, step_siz
     start_time = "Started:  " + str(datetime.datetime.now())
 
     #sanitize policy
-    pol = SWMv1_2.sanitize_policy(policy)
+    pol = SWMv1_3.sanitize_policy(policy)
 
     #create pathways
     print("")
@@ -561,8 +561,8 @@ def SWM_hill_climb(pathway_count=100, timesteps=150, climbing_steps=20, step_siz
 
         #simulate has a signature of:
         #simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILENT=False, PROBABILISTIC_CHOICES=True)
-        pw = SWMv1_2.simulate(timesteps, p, 6500+i, {}, True, True)
-        pathways[i] = SWMv1_2.convert_to_MDP_pathway(pw)
+        pw = SWMv1_3.simulate(timesteps, p, 6500+i, {}, True, True)
+        pathways[i] = SWMv1_3.convert_to_MDP_pathway(pw)
     
     #default to J3
     objfn = MDP_opt.J3
@@ -643,7 +643,7 @@ def SWM_hill_climb(pathway_count=100, timesteps=150, climbing_steps=20, step_siz
     f_star_dis = open(os.path.join(folder,"star_dis.txt"),'w')
 
     #Writing Details
-    f_details.write("SWMv1_2_Trials.SWM_hill_climb()\n")
+    f_details.write("SWMv1_3_Trials.SWM_hill_climb()\n")
     f_details.write("\n")
     f_details.write(start_time + "\n")
     f_details.write(end_time + "\n")
@@ -666,7 +666,7 @@ def SWM_hill_climb(pathway_count=100, timesteps=150, climbing_steps=20, step_siz
     f_details.close()
 
     #Writing Pathway information
-    f_path.write("SWMv1_2_Trials.SWM_hill_climb()\n")
+    f_path.write("SWMv1_3_Trials.SWM_hill_climb()\n")
     f_path.write("Pathway of the Ascent/Descent\n")
     f_path.write("(Points are duplicated for use in Scilab.xarrows function)")
     f_path.write("\n")
@@ -693,13 +693,13 @@ def SWM_hill_climb(pathway_count=100, timesteps=150, climbing_steps=20, step_siz
 
     #writing exploration sets
 
-    f_explore.write("SWMv1_2_Trials.SWM_hill_climb()\n")
+    f_explore.write("SWMv1_3_Trials.SWM_hill_climb()\n")
     f_explore.write("Exploration Vectors")
     f_explore.write("\n")
-    f_expl_impr.write("SWMv1_2_Trials.SWM_hill_climb()\n")
+    f_expl_impr.write("SWMv1_3_Trials.SWM_hill_climb()\n")
     f_expl_impr.write("Exploration Improving Vectors")
     f_expl_impr.write("\n")
-    f_expl_dis.write("SWMv1_2_Trials.SWM_hill_climb()\n")
+    f_expl_dis.write("SWMv1_3_Trials.SWM_hill_climb()\n")
     f_expl_dis.write("Exploration Disimproving Vectors")
     f_expl_dis.write("\n")
 
@@ -772,13 +772,13 @@ def SWM_hill_climb(pathway_count=100, timesteps=150, climbing_steps=20, step_siz
 
     #writing starburst vectors
 
-    f_starburst.write("SWMv1_2_Trials.SWM_hill_climb()\n")
+    f_starburst.write("SWMv1_3_Trials.SWM_hill_climb()\n")
     f_starburst.write("Starburst Vectors")
     f_starburst.write("\n")
-    f_star_impr.write("SWMv1_2_Trials.SWM_hill_climb()\n")
+    f_star_impr.write("SWMv1_3_Trials.SWM_hill_climb()\n")
     f_star_impr.write("Starburst Improving Vectors")
     f_star_impr.write("\n")
-    f_star_dis.write("SWMv1_2_Trials.SWM_hill_climb()\n")
+    f_star_dis.write("SWMv1_3_Trials.SWM_hill_climb()\n")
     f_star_dis.write("Starburst Disimproving Vectors")
     f_star_dis.write("\n")
 
@@ -989,7 +989,7 @@ def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, s
         f_climbs[i] = open(os.path.join(folder,"climb_"+str(i)+".txt"),'w')
 
     #Writing Details
-    f_details.write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
+    f_details.write("SWMv1_3_Trials.SWM_multi_hill_climb()\n")
     f_details.write("\n")
     f_details.write(start_time + "\n")
     f_details.write(end_time + "\n")
@@ -1013,7 +1013,7 @@ def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, s
     f_details.close()
 
     #Writing Pathway information
-    f_path.write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
+    f_path.write("SWMv1_3_Trials.SWM_multi_hill_climb()\n")
     f_path.write("Pathway of the Ascent/Descent\n")
     f_path.write("(Points are duplicated for use in Scilab.xarrows function)\n")
     f_path.write("\n")
@@ -1021,7 +1021,7 @@ def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, s
 
     #writing headers for individual climb files
     for i in range(len(f_climbs)):
-        f_climbs[i].write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
+        f_climbs[i].write("SWMv1_3_Trials.SWM_multi_hill_climb()\n")
         f_climbs[i].write("Climb " + str(i) + "\n")
         f_climbs[i].write("\n")
         f_climbs[i].write("P0 P1 Value Var logVar STD Ave KLD MC_Val MC_STD\n")
@@ -1069,13 +1069,13 @@ def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, s
 
     #writing exploration sets
 
-    f_explore.write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
+    f_explore.write("SWMv1_3_Trials.SWM_multi_hill_climb()\n")
     f_explore.write("Exploration Vectors")
     f_explore.write("\n")
-    f_expl_impr.write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
+    f_expl_impr.write("SWMv1_3_Trials.SWM_multi_hill_climb()\n")
     f_expl_impr.write("Exploration Improving Vectors")
     f_expl_impr.write("\n")
-    f_expl_dis.write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
+    f_expl_dis.write("SWMv1_3_Trials.SWM_multi_hill_climb()\n")
     f_expl_dis.write("Exploration Disimproving Vectors")
     f_expl_dis.write("\n")
 
@@ -1149,13 +1149,13 @@ def SWM_multi_hill_climb(pathways, x0_lists, climbing_steps=20, step_size=0.2, s
 
     #writing starburst vectors
 
-    f_starburst.write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
+    f_starburst.write("SWMv1_3_Trials.SWM_multi_hill_climb()\n")
     f_starburst.write("Starburst Vectors")
     f_starburst.write("\n")
-    f_star_impr.write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
+    f_star_impr.write("SWMv1_3_Trials.SWM_multi_hill_climb()\n")
     f_star_impr.write("Starburst Improving Vectors")
     f_star_impr.write("\n")
-    f_star_dis.write("SWMv1_2_Trials.SWM_multi_hill_climb()\n")
+    f_star_dis.write("SWMv1_3_Trials.SWM_multi_hill_climb()\n")
     f_star_dis.write("Starburst Disimproving Vectors")
     f_star_dis.write("\n")
 

@@ -740,17 +740,21 @@ class Optimizer:
 ###################################
 
 
-def normalize_pathway_features(pathways, rng=1.0):
+def normalize_pathway_features(pathways, rng=1.0, SKIP_IF_ALREADY_NORMALIZED=True):
     """Returns a pathway set with normalized features
 
     This function normalizes each state(feature) variable of each event in each pathway to fall
     between its rng and -rng arguments.
 
-    Any pathway that reports having already been normalized, is 'un-normalized' first
+    
     """
 
-    #un-normalize anythign that needs it
-    #TODO
+    #check if the first pathway is normalized already, and if so, assume all are
+    #TODO, if theres mixed normalized and un-normalized pathways... this should back-calculate
+    # the normalized ones, and then do the normalization on all of them...
+    if SKIP_IF_ALREADY_NORMALIZED:
+        if pathways[0].normalized:
+            return None
 
     feature_count = pathways[0].policy_length
 
@@ -1129,6 +1133,9 @@ def J4(policy_vector, pathways, FEATURE_NORMALIZATION=True, VALUE_NORMALIZATION=
         weight_sum += pw_joint_prob
 
     
+    #make sure that weight_sum is non-zero, because it can be in some cases
+    if weight_sum < 0.000000001:
+        weight_sum = 0.000000001
 
     #now use the J1 weights and the sum to calculate the J4 weights
     for p in range(len(pathways)):
