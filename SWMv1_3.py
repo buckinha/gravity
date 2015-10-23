@@ -30,11 +30,11 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
     #REWARD STRUCTURE
     
     #cost of suppression in a mild event
-    supp_cost_mild = 5
+    supp_cost_mild = 9
     if "Suppression Cost - Mild Event" in model_parameters.keys(): supp_cost_mild = model_parameters["Suppression Cost - Mild Event"]
 
     #cost of suppresion in a severe event
-    supp_cost_severe = 10
+    supp_cost_severe = 13
     if "Suppression Cost - Severe Event" in model_parameters.keys(): supp_cost_severe = model_parameters["Suppression Cost - Severe Event"]
 
     #cost of a severe fire on the next timestep
@@ -53,7 +53,7 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
 
     timber_change_after_suppression = 0.1
     timber_change_after_mild = 0.1
-    timber_change_after_severe = -3.0
+    timber_change_after_severe = -5.0
     if "Timber Value Change After Suppression" in model_parameters.keys(): timber_change_after_suppression = model_parameters["Timber Value Change After Suppression"]
     if "Timber Value Change After Mild" in model_parameters.keys(): timber_change_after_mild = model_parameters["Timber Value Change After Mild"]
     if "Timber Value Change After Severe" in model_parameters.keys(): timber_change_after_severe = model_parameters["Timber Value Change After Severe"]
@@ -67,8 +67,10 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
 
 
     #habitat transition variables
-    habitat_mild_interval = 5
-    habitat_severe_interval = 20
+    habitat_mild_maximum = 15
+    habitat_mild_minimum = 0
+    habitat_severe_maximum = 40
+    habitat_severe_minimum = 10
     habitat_loss_if_no_mild = 0.2
     habitat_loss_if_no_severe = 0.2
     habitat_gain = 0.1
@@ -170,7 +172,7 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
 
                 #reset both timers
                 time_since_severe = 0
-                time_since_mild = 0
+                time_since_mild += 1
 
             elif severity == MILD:
                 current_vulnerability += vuln_change_after_mild
@@ -189,14 +191,22 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
             time_since_severe += 1
 
 
-        #check for habitat changes
-        if (time_since_mild <= habitat_mild_interval) and (time_since_severe <= habitat_severe_interval):
+        #check for habitat changes. 
+        #Note to self: suppression effects are already taken into account above
+        if ( (time_since_mild <= habitat_mild_maximum) and 
+             (time_since_mild >= habitat_mild_minimum) and
+             (time_since_severe <= habitat_severe_maximum) and
+             (time_since_severe >= habitat_severe_minimum)  ):
+
+            #this fire is happy on all counts
             current_habitat += habitat_gain
         else:
-            if time_since_mild > habitat_mild_interval:
+            #this fire is unhappy in some way.
+            if (time_since_mild > habitat_mild_maximum) or (time_since_mild < habitat_mild_minimum):
                 current_habitat -= habitat_loss_if_no_mild
-            if time_since_severe > habitat_severe_interval:
+            if (time_since_severe > habitat_severe_maximum) or (time_since_severe < habitat_severe_minimum):
                 current_habitat -= habitat_loss_if_no_severe
+
 
 
         #Enforce state variable bounds
