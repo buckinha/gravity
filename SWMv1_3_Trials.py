@@ -3,9 +3,21 @@
 import MDP, MDP_opt, SWMv1_3, HKB_Heuristics, random, numpy, datetime, HKB_Heuristics
 import os.path
 
-def standard_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HABITAT=False):
+def standard_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HABITAT=False, policy_wiggle=0.0):
     """
     Generates a set of SWM v1.3 pathways and returns them as a list of MDP pathway objects
+
+    ARGUEMENTS
+    pathway_count: integer - how many pathways to create
+    timesteps: integer  - how many timesteps each pathway should be simulated for
+    policy: either a list of policy values, or a string "CT" "SA" "LB" "MIXED_CT", "MIXED_ALL"
+    random_seed: the initial random seed from which to work. Each pathway will have it's
+      own random seed derived from this one. Giving the same parameters and random seed will
+      always result in the same set of pathways (bugs notwithsdanding)
+    VALUE_ON_HABITAT: boolean, When set to True, the pathways will have the habitat value index as 
+      their "value" rather than the logging/suppression budget values
+    policy_wiggle: float, etc...: when each pathway is simulated, the policy it is given is shifted 
+      by up to this amount in either the + or - direction.
     """
 
     pathways = [None]*pathway_count
@@ -26,6 +38,10 @@ def standard_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_H
             # in case it's "CT", "SA", "LB", etc...
             pol = SWMv1_2.sanitize_policy(policy)
 
+        #do policy wiggle
+        random.seed(random_seed+i)
+        for b in range(len(pol)):
+            pol[b] += random.uniform(-1.0*policy_wiggle, policy_wiggle)
 
         pw = SWMv1_3.simulate(timesteps,pol,random_seed=i+8500+random_seed,SILENT=True)
         pathways[i] = SWMv1_3.convert_to_MDP_pathway(pw,VALUE_ON_HABITAT=VALUE_ON_HABITAT)

@@ -2,7 +2,7 @@
 #Implementing a Simultaneous Perturbation Stochastic Approximation (SPSA) estimate.
 import random, MDP, datetime, os.path, numpy, SWMv1_2
 
-def SPSA(x0, alpha, objfn, objfn_args=None, random_seed=None):
+def SPSA(x0, alpha, objfn, objfn_args=None, random_seed=None, RADEMACHER=False):
     """Returns a vector containing the SPSA gradient estimate
 
     ARGUEMENTS
@@ -16,6 +16,9 @@ def SPSA(x0, alpha, objfn, objfn_args=None, random_seed=None):
 
     random_seed: the seed to give to python's random number generator. If None, then this is ignored.
 
+    RADEMACHER: boolean. If True, the algorithm will perturb x0 by +/- ones
+      If False, the algorithm will instead perturb x0 by values drawn ~U(-1,1)
+
     """
 
     #set the random number generator, if desired.
@@ -28,7 +31,11 @@ def SPSA(x0, alpha, objfn, objfn_args=None, random_seed=None):
 
     #create perturbation vectors
     for i in range(n):
-        v = random.choice([-1,1])
+        v=0.0
+        if RADEMACHER:
+            v = random.choice([-1,1])
+        else:
+            v = random.uniform(-1,1)
 
         v_plus[i] = x0[i] + (alpha * v)
         v_minus[i] = x0[i] - (alpha * v)
