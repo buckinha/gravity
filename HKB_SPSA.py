@@ -63,7 +63,7 @@ def SPSA(x0, alpha, objfn, objfn_args=None, random_seed=None, RADEMACHER=False):
     return SPSA_grad
 
 
-def SPSA_KLD_Climb(objfn, x0, alpha=0.1, max_gradient=0.5, gamma=None, epsilon = 0.0001, max_steps=50, retries=10, KLD_constraint=2.0, objfn_args=None, MINIMIZING=False):
+def SPSA_KLD_Climb(objfn, x0, alpha=1.0, max_gradient=0.5, gamma=None, epsilon = 0.0001, max_steps=50, retries=10, KLD_constraint=2.0, objfn_args=None, MINIMIZING=False):
     """Hill-climbing using an SPSA gradient apprximation, with optional KL Divergence constraint
 
     This function does a single hill climb using Spall's Simultaneous Perturbation Stochastic 

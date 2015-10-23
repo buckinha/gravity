@@ -36,7 +36,7 @@ def standard_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_H
         else:
             #its not one of the strings which imply changing policies, so now use sanitize_policy
             # in case it's "CT", "SA", "LB", etc...
-            pol = SWMv1_2.sanitize_policy(policy)
+            pol = SWMv1_3.sanitize_policy(policy)
 
         #do policy wiggle
         random.seed(random_seed+i)
