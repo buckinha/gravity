@@ -54,6 +54,75 @@ def standard_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_H
 
     return pathways
 
+def limited_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HABITAT=False, policy_wiggle=0.0, fail_at_count=1000):
+    """
+    Generates as per the standard set, but rejects pathways with suppression_rate = 0 or 1
+
+    ARGUEMENTS
+    pathway_count: integer - how many pathways to create
+    timesteps: integer  - how many timesteps each pathway should be simulated for
+    policy: either a list of policy values, or a string "CT" "SA" "LB" "MIXED_CT", "MIXED_ALL"
+    random_seed: the initial random seed from which to work. Each pathway will have it's
+      own random seed derived from this one. Giving the same parameters and random seed will
+      always result in the same set of pathways (bugs notwithsdanding)
+    VALUE_ON_HABITAT: boolean, When set to True, the pathways will have the habitat value index as 
+      their "value" rather than the logging/suppression budget values
+    policy_wiggle: float, etc...: when each pathway is simulated, the policy it is given is shifted 
+      by up to this amount in either the + or - direction.
+    """
+
+    pathways = [None]*pathway_count
+
+    
+
+    i = 0
+    for count in range(fail_at_count):
+
+        pol = [0.0,0.0,0.0]
+        if policy == "MIXED_CT":
+            pol[0] = random.uniform(-2.0,2.0)
+            pol[1] = random.uniform(-2.0,2.0)
+        elif policy == "MIXED_ALL":
+            pol[0] = random.uniform(-20.0,20.0)
+            pol[1] = random.uniform(-20.0,20.0)
+        else:
+            #its not one of the strings which imply changing policies, so now use sanitize_policy
+            # in case it's "CT", "SA", "LB", etc...
+            pol = SWMv1_3.sanitize_policy(policy)
+
+        #do policy wiggle
+        pol = sphere_dist(center=pol, radius=policy_wiggle, random_seed=random_seed+i)
+
+        #run the pathway
+        pw = SWMv1_3.simulate(timesteps,pol,random_seed=i+8500+random_seed,SILENT=True)
+
+        #check the suppression rate
+
+
+        if (pw["Suppression Rate"] == 0) or (pw["Suppression Rate"] == 1):
+            #this pathway needs to be rejected:
+            #  keep i as it is, and continue the loop
+            pass
+        else:
+            #this pathway can be accepted
+            pathways[i] = SWMv1_3.convert_to_MDP_pathway(pw,VALUE_ON_HABITAT=VALUE_ON_HABITAT)
+            i += 1
+
+            #check for i being in range
+            if i >= pathway_count:
+                #we've filled the array, so quit
+                break
+
+    #we've exitted the loop. Check to see if the array was filled:
+    if i < pathway_count:
+        #we didn't fill the set, so... do what?
+        print("WARNING: limited_MDP_set() could only find " + str(i) + " non-plateau policies...")
+        pathways = pathways[:i]
+
+    return pathways
+
+
+
 def pathway_value_graph_1(pathway_count_per_point, timesteps, p0_range=[-20,20], p1_range=[-20,20], p0_step=0.5, p1_step=0.5, VALUE_ON_HABITAT=False, PROBABILISTIC_CHOICES=True, OUTPUT_FOR_SCILAB=True):
     """Step through the policy space and get the monte carlo net values at each policy point"""
 
@@ -243,7 +312,7 @@ def suppression_rate_map(pathway_count_per_point, timesteps, p0_range=[-20,20], 
 
     f.close()
 
-    
+
 def obj_fn_graph_1(pathway_count_per_point, timesteps, starting_policy, objective_function='J3', p0_range=[-20,20], p1_range=[-20,20], p0_step=0.5, p1_step=0.5, pathways=None, OUTPUT_FOR_SCILAB=True, folder=None):
     """ Calculates obj.fn. values throughout the given policy space
     """
