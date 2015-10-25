@@ -2,7 +2,7 @@
 
 import random, math, numpy, MDP
 
-def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILENT=False, PROBABILISTIC_CHOICES=True):
+def simulate(timesteps, policy=[0,0], random_seed=0, model_parameters={}, SILENT=False, PROBABILISTIC_CHOICES=True):
     
     random.seed(random_seed)
     
@@ -113,10 +113,10 @@ def simulate(timesteps, policy=[0,0,0], random_seed=0, model_parameters={}, SILE
 
 
         #logistic function for the policy choice
-        #policy_crossproduct = policy[0] + policy[1]*ev
+        policy_crossproduct = pol[0] + pol[1]*ev
         #modified logistic policy function
         #                     CONSTANT       COEFFICIENT       SHIFT
-        policy_crossproduct = pol[0] + ( pol[1] * (ev + pol[2]) )
+        #policy_crossproduct = pol[0] + ( pol[1] * (ev + pol[2]) )
         if policy_crossproduct > 100: policy_crossproduct = 100
         if policy_crossproduct < -100: policy_crossproduct = -100
 
@@ -306,18 +306,14 @@ def simulate_all_policies(timesteps=10000, start_seed=0):
 def sanitize_policy(policy):
     pol = []
     if isinstance(policy, list):
-        if len(policy) == 2:
-            #it's length-2, so add the shift parameter
-            pol = policy + [0]
-        else:
-            #it's probably length-3, so just assign it
-            pol = policy
+        #it's probably length-2, so just assign it
+        pol = policy[:]
     else:
         #it's not a list, so find out what string it is
-        if policy == 'LB':    pol = [-20,0,0]
-        elif policy == 'SA':  pol = [ 20,0,0]
-        elif policy == 'CT':  pol = [  0,0,0]
-        else: pol = [0,0,0] #using CT as a catch-all for when the string is "MIXED_CT" or whatnot
+        if policy == 'LB':    pol = [-20,0]
+        elif policy == 'SA':  pol = [ 20,0]
+        elif policy == 'CT':  pol = [  0,0]
+        else: pol = [0,0] #using CT as a catch-all for when the string is "MIXED_CT" or whatnot
 
     return pol
 

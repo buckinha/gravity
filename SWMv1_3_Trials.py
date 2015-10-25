@@ -2,6 +2,7 @@
 
 import MDP, MDP_opt, SWMv1_3, HKB_Heuristics, random, numpy, datetime, HKB_Heuristics
 import os.path
+from sphere_dist import sphere_dist
 
 def standard_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HABITAT=False, policy_wiggle=0.0):
     """
@@ -39,9 +40,14 @@ def standard_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_H
             pol = SWMv1_3.sanitize_policy(policy)
 
         #do policy wiggle
-        random.seed(random_seed+i)
-        for b in range(len(pol)):
-            pol[b] += random.uniform(-1.0*policy_wiggle, policy_wiggle)
+        #new way using spherical draws
+        pol = sphere_dist(center=pol, radius=policy_wiggle, random_seed=random_seed+i)
+
+        #old way using cubical draws
+        # random.seed(random_seed+i)
+        # for b in range(len(pol)):
+        #     pol[b] += random.uniform(-1.0*policy_wiggle, policy_wiggle)
+
 
         pw = SWMv1_3.simulate(timesteps,pol,random_seed=i+8500+random_seed,SILENT=True)
         pathways[i] = SWMv1_3.convert_to_MDP_pathway(pw,VALUE_ON_HABITAT=VALUE_ON_HABITAT)
@@ -157,6 +163,87 @@ def pathway_value_graph_1(pathway_count_per_point, timesteps, p0_range=[-20,20],
 
     f.close()
 
+def suppression_rate_map(pathway_count_per_point, timesteps, p0_range=[-20,20], p1_range=[-20,20], p0_step=0.5, p1_step=0.5, PROBABILISTIC_CHOICES=True):
+    """Step through the policy space and map the percentage suppression at policies throughout the space"""
+
+    start_time = "Started:  " + str(datetime.datetime.now())
+
+    #get step counts and starting points
+    p0_step_count = int(  abs(p0_range[1] - p0_range[0]) / p0_step  ) + 1
+    p1_step_count = int(  abs(p1_range[1] - p1_range[0]) / p1_step  ) + 1
+    p0_start = p0_range[0]
+    if p0_range[1] < p0_range[0]: p0_start = p0_range[1]
+    p1_start = p1_range[0]
+    if p1_range[1] < p1_range[0]: p1_start = p1_range[1]
+
+
+    #create the rows/columns structure
+    p1_rows = [None] * p1_step_count
+    for i in range(p1_step_count):
+        p1_rows[i] = [None] * p0_step_count
+
+
+    #step through the polcies and generate monte carlo rollouts, and save their average value
+    pathways = [None]*pathway_count_per_point
+
+    for row in range(p1_step_count):
+        for col in range(p0_step_count):
+            p0_val = p0_start + col*p0_step
+            p1_val = p1_start + row*p1_step
+          
+            for i in range(pathway_count_per_point):
+                pathways[i] = SWMv1_3.simulate(timesteps=timesteps, policy=[p0_val,p1_val,0], random_seed=(5000+i), SILENT=True, PROBABILISTIC_CHOICES=PROBABILISTIC_CHOICES)
+
+            #get the suppression percentage
+            p1_rows[row][col] = pathways[i]["Suppression Rate"]
+
+
+    end_time = "Finished: " + str(datetime.datetime.now())
+
+    #finished gathering output strings, now write them to the file
+    f = open('suppression_rate_map.txt', 'w')
+
+    #Writing Header
+    f.write("SWMv1_3_Trials.suppression_rate_map()\n")
+    f.write(start_time + "\n")
+    f.write(end_time + "\n")
+    f.write("Pathways per Point: " + str(pathway_count_per_point) +"\n")
+    f.write("Timesteps per Pathway: " + str(timesteps) +"\n")
+    f.write("P0 Range: " + str(p0_range) +"\n")
+    f.write("P1 Range: " + str(p1_range) +"\n")
+
+    #writing model parameters from whatever's still in the pathway set.
+    # the model parameters don't change from one M.C batch to another.
+    f.write("\n")
+    f.write("Vulnerability Min: " + str(pathways[0]["Vulnerability Min"]) + "\n")
+    f.write("Vulnerability Max: " + str(pathways[0]["Vulnerability Max"]) + "\n")
+    f.write("Vulnerability Change After Suppression: " + str(pathways[0]["Vulnerability Change After Suppression"]) + "\n")
+    f.write("Vulnerability Change After Mild: " + str(pathways[0]["Vulnerability Change After Mild"]) + "\n")
+    f.write("Vulnerability Change After Severe: " + str(pathways[0]["Vulnerability Change After Severe"]) + "\n")
+    f.write("Timber Value Min: " + str(pathways[0]["Timber Value Min"]) + "\n")
+    f.write("Timber Value Max: " + str(pathways[0]["Timber Value Max"]) + "\n")
+    f.write("Timber Value Change After Suppression: " + str(pathways[0]["Timber Value Change After Suppression"]) + "\n")
+    f.write("Timber Value Change After Mild: " + str(pathways[0]["Timber Value Change After Mild"]) + "\n")
+    f.write("Timber Value Change After Severe: " + str(pathways[0]["Timber Value Change After Severe"]) + "\n")
+    f.write("Suppression Cost - Mild: " + str(pathways[0]["Suppression Cost - Mild"]) + "\n")
+    f.write("Suppression Cost - Severe: " + str(pathways[0]["Suppression Cost - Severe"]) + "\n")
+    f.write("Severe Burn Cost: " + str(pathways[0]["Severe Burn Cost"]) + "\n")
+    f.write("\n")
+
+
+    #Writing Data
+    f.write("\n")
+    for row in range(p1_step_count):
+
+        for col in range(p0_step_count):
+            f.write( str(p1_rows[row][col]) + " " )
+        f.write("\n")
+
+
+
+    f.close()
+
+    
 def obj_fn_graph_1(pathway_count_per_point, timesteps, starting_policy, objective_function='J3', p0_range=[-20,20], p1_range=[-20,20], p0_step=0.5, p1_step=0.5, pathways=None, OUTPUT_FOR_SCILAB=True, folder=None):
     """ Calculates obj.fn. values throughout the given policy space
     """
