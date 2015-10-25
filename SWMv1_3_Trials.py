@@ -54,7 +54,7 @@ def standard_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_H
 
     return pathways
 
-def limited_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HABITAT=False, policy_wiggle=0.0, fail_at_count=1000):
+def limited_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HABITAT=False, policy_wiggle=0.0, fail_at_count=2000):
     """
     Generates as per the standard set, but rejects pathways with suppression_rate = 0 or 1
 
@@ -69,6 +69,8 @@ def limited_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HA
       their "value" rather than the logging/suppression budget values
     policy_wiggle: float, etc...: when each pathway is simulated, the policy it is given is shifted 
       by up to this amount in either the + or - direction.
+    fail_at_count: an integer reflecting the maximum number of attempts the function can make at finding
+      policies/pathways that have suppression rates other than 0 or 1
     """
 
     pathways = [None]*pathway_count
@@ -120,8 +122,6 @@ def limited_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HA
         pathways = pathways[:i]
 
     return pathways
-
-
 
 def pathway_value_graph_1(pathway_count_per_point, timesteps, p0_range=[-20,20], p1_range=[-20,20], p0_step=0.5, p1_step=0.5, VALUE_ON_HABITAT=False, PROBABILISTIC_CHOICES=True, OUTPUT_FOR_SCILAB=True):
     """Step through the policy space and get the monte carlo net values at each policy point"""
