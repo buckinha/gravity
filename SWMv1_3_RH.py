@@ -136,13 +136,13 @@ def reg_heur(pol_0, wiggle, pw_count=500, years=100, alpha_step=1, p_val_limit=0
             #adding the color, based on the value at the ending point
             r_lines[i] += ", col="
             if val_history[i+1] < -4:
-                r_lines[i] += "'blue')"
+                r_lines[i] += "'purple')"
             elif val_history[i+1] < 0:
-                r_lines[i] += "'green')"
+                r_lines[i] += "'blue')"
             elif val_history[i+1] < 4:
-                r_lines[i] += "'yellow')"
+                r_lines[i] += "'green')"
             elif val_history[i+1] < 6.1:
-                r_lines[i] += "'tan')"
+                r_lines[i] += "'yellow')"
             elif val_history[i+1] < 7:
                 r_lines[i] += "'orange')"
             else:
@@ -150,7 +150,7 @@ def reg_heur(pol_0, wiggle, pw_count=500, years=100, alpha_step=1, p_val_limit=0
             
             #go ahead and print it here, for now
             print(r_lines[i])
-    else:
+    if True:
         print("")
         print("")
         print("RESULTS")
