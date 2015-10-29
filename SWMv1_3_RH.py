@@ -4,7 +4,7 @@ import statsmodels.api as stats
 
 
 
-def reg_heur(pol_0, wiggle, pw_count=500, years=100, alpha_step=1, p_val_limit=0.1, max_steps=20):
+def reg_heur(pol_0, wiggle, pw_count=500, years=100, alpha_step=1, p_val_limit=0.1, max_steps=20,PRINT_R_PLOTTING=False):
 
     #get initial set
     pw = SWMT.limited_MDP_set(pw_count, years, pol_0, random_seed=0, policy_wiggle=1.0)
@@ -120,13 +120,42 @@ def reg_heur(pol_0, wiggle, pw_count=500, years=100, alpha_step=1, p_val_limit=0
         print("Maximum number of steps reached.")
 
 
-    print("")
-    print("")
-    print("RESULTS")
-    print("STEPS: " + str(len(pol_history)))
-
-    print("VALUE PO P1")
-    for i in range(len(val_history)):
-        print(str(val_history[i]) + " " + str(pol_history[i][0]) + " " + str(pol_history[i][1]) )
+    
 
 
+    if PRINT_R_PLOTTING:
+        print("")
+        print("")
+        r_lines = ["segments("] * (len(val_history)-1)
+        for i in range(len(val_history)-1):
+            #the plots are always flip-flopped axis, so make sure to do that here, too
+            #adding starting point
+            r_lines[i] += str(pol_history[i][1]) + "," + str(pol_history[i][0])
+            #adding ending point
+            r_lines[i] += "," + str(pol_history[i+1][1]) + "," + str(pol_history[i+1][0])
+            #adding the color, based on the value at the ending point
+            r_lines[i] += ", col="
+            if val_history[i+1] < -4:
+                r_lines[i] += "'blue')"
+            elif val_history[i+1] < 0:
+                r_lines[i] += "'green')"
+            elif val_history[i+1] < 4:
+                r_lines[i] += "'yellow')"
+            elif val_history[i+1] < 6.1:
+                r_lines[i] += "'tan')"
+            elif val_history[i+1] < 7:
+                r_lines[i] += "'orange')"
+            else:
+                r_lines[i] += "'red')"
+            
+            #go ahead and print it here, for now
+            print(r_lines[i])
+    else:
+        print("")
+        print("")
+        print("RESULTS")
+        print("STEPS: " + str(len(pol_history)))
+
+        print("VALUE PO P1")
+        for i in range(len(val_history)):
+            print(str(val_history[i]) + " " + str(pol_history[i][0]) + " " + str(pol_history[i][1]) )
