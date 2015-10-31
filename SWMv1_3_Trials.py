@@ -4,7 +4,7 @@ import MDP, MDP_opt, SWMv1_3, HKB_Heuristics, random, numpy, datetime, HKB_Heuri
 import os.path
 from sphere_dist import sphere_dist
 
-def standard_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HABITAT=False, policy_wiggle=0.0):
+def standard_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HABITAT=False, sampling_radius=0.0):
     """
     Generates a set of SWM v1.3 pathways and returns them as a list of MDP pathway objects
 
@@ -41,7 +41,7 @@ def standard_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_H
 
         #do policy wiggle
         #new way using spherical draws
-        pol = sphere_dist(center=pol, radius=policy_wiggle, random_seed=random_seed+i)
+        pol = sphere_dist(center=pol, radius=sampling_radius, random_seed=random_seed+i)
 
         #old way using cubical draws
         # random.seed(random_seed+i)
@@ -54,7 +54,7 @@ def standard_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_H
 
     return pathways
 
-def limited_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HABITAT=False, policy_wiggle=0.0, fail_at_count=2000):
+def limited_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HABITAT=False, sampling_radius=0.0, fail_at_count=2000):
     """
     Generates as per the standard set, but rejects pathways with suppression_rate = 0 or 1
 
@@ -67,8 +67,9 @@ def limited_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HA
       always result in the same set of pathways (bugs notwithsdanding)
     VALUE_ON_HABITAT: boolean, When set to True, the pathways will have the habitat value index as 
       their "value" rather than the logging/suppression budget values
-    policy_wiggle: float, etc...: when each pathway is simulated, the policy it is given is shifted 
-      by up to this amount in either the + or - direction.
+    sampling_radius: float, etc...: when each pathway is simulated, the policy it is given is shifted 
+      by up to this amount in either the + or - direction, but limited such that the perturbation vector
+      is within the spherical region with this radius around the initial policy .
     fail_at_count: an integer reflecting the maximum number of attempts the function can make at finding
       policies/pathways that have suppression rates other than 0 or 1
     """
@@ -93,7 +94,7 @@ def limited_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HA
             pol = SWMv1_3.sanitize_policy(policy)
 
         #do policy wiggle
-        pol = sphere_dist(center=pol, radius=policy_wiggle, random_seed=random_seed+i)
+        pol = sphere_dist(center=pol, radius=sampling_radius, random_seed=random_seed+i)
 
         #run the pathway
         pw = SWMv1_3.simulate(timesteps,pol,random_seed=i+8500+random_seed,SILENT=True)

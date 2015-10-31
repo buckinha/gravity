@@ -317,7 +317,7 @@ def sanitize_policy(policy):
 
     return pol
 
-def convert_to_MDP_pathway(SWMv1_3_pathway,VALUE_ON_HABITAT=False):
+def convert_to_MDP_pathway(SWMv1_3_pathway,VALUE_ON_HABITAT=False, percentage_habitat=0):
     """ Converts a SWMv1_3 pathway into a generic MDP_Pathway object and returns it"""
     
     #create a new MDP pathway object, with policy length = 2
@@ -334,16 +334,23 @@ def convert_to_MDP_pathway(SWMv1_3_pathway,VALUE_ON_HABITAT=False):
         event = MDP.MDP_Event(i)
         
         #in SWIMM, the states are each in the following format:
-        #states[i] = [current_vulnerability, current_timber, ev, choice, choice_prob, policy_value, current_reward, i]
+        #states[i] = [current_vulnerability, current_timber, ev, choice, choice_prob, policy_value, current_reward, current_habitat, i]
         event.state_length = 2
         event.state = [1, SWMv1_3_pathway["States"][i][2]]
         event.action = SWMv1_3_pathway["States"][i][3]
         event.decision_prob = SWMv1_3_pathway["States"][i][4]
         event.action_prob = SWMv1_3_pathway["States"][i][5]
-        if VALUE_ON_HABITAT:
+        if (VALUE_ON_HABITAT) or (percentage_habitat >= 1):
+            #just report habitat values
             event.rewards = [SWMv1_3_pathway["States"][i][7]]
         else:
-            event.rewards = [SWMv1_3_pathway["States"][i][6]]
+            if percentage_habitat > 0 :
+                #non-zero percentage, so report the appropriate mix of habitat and budget values
+                parts_hab = [SWMv1_3_pathway["States"][i][7]] * percentage_habitat
+                parts_budg = [SWMv1_3_pathway["States"][i][6]] * (1-percentage_habitat)
+                event.rewards = parts_hab + parts_budg
+            else:
+                event.rewards = [SWMv1_3_pathway["States"][i][6]]
         
         new_MDP_pw.events.append(event)
 
