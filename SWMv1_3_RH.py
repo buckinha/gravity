@@ -243,3 +243,90 @@ def reg_heur(pol_0, sampling_radius=1.0, pw_count=500, years=100, minimum_pathwa
     summary.["R Plotting"] = r_lines
 
     return summary
+
+
+def RH_Climb(policy_set=None, policy_range=[[-25,25],[-25,25]], plateau_function=dummy_filter, max_climbs=25, max_steps=25, sampling_radius=1.0, step_alpha=1.0, pathway_count=[100,200,300,400,500], pw_count_minimum=20, p_value=0.05):
+    """ Conducts multiple runs through the regression heuristic in an attempt to find a global optima.
+
+    DESCRIPTION:
+
+    ARGUEMENTS:
+
+    RETURNS:
+
+    """
+    policy_length = 0
+
+    #SET UP THE POLICY SET
+
+    #check if the policy_set is a list of lists (multiple policies)
+    if not policy_set:
+        #no policies were passed in, so set up policy_set with None values as a flag to generate
+        # them within the climbs loop
+        policy_set = [None] * max_climbs
+
+        #set policy length to match the bounds given by policy_range
+        policy_length = len(policy_range)
+
+    else:
+        if isinstance(policy_set[0], list):
+            #the first element of policy_set is itself a list, so this should be a multiple policy argument
+            #We'll just leave them be then, and set max_climbs to the length of the list, ignoring whatever
+            #it might have otherwise been set to.
+            max_climbs = len(policy_set)
+
+            #set policy_length to match the policies given
+            policy_length = len(policy_set[0])
+
+        else:
+            #the first element is not a list, so we'll assume this is a single policy
+            #In this case, we'll use this policy as the first one attempted, and fill in the
+            # rest with None values as a flag to generate them as we go
+            
+            #remember the first policy
+            first_policy = policy_set[:]
+
+            #set policy_length to match the policy given
+            policy_length = len(policy_set)
+
+            #make policy_set into a list of the appropriate length
+            policy_set = [None] * max_climbs
+
+            #set the first policy
+            policy_set[0] = first_policy
+
+
+
+    #set up the return dictionary
+    summary = {}
+    summary["Individual Climbs"] = []
+    summary["Best Policy"] = None
+    summary["Best Value"] = float("-inf")
+
+
+
+    #START LOOPING THROUGH THE CLIMBS
+    for climb_number in range(max_climbs):
+
+        #check if there is a policy already, or if one needs to be created
+        if policy_set[climb_number]:
+            #there is a policy, so don't worry about anything
+            pass
+        else:
+            #this policy is set to None, so generate a new one within the given bounds
+            policy_set[climb_number] = [0.0] * policy_length
+            for b in range(policy_length):
+                policy_set[climb_number][b] = random.uniform(policy_range[b][0], policy_range[b][1])
+
+
+        #filter the current policy, and if necessary, draw a new one
+        for redraw in range(100):
+            #limiting redraw attempts...
+
+
+
+
+def dummy_filter(policy_to_check, training_set):
+    """Returns True if this policy is "allowed" by the rule learned upon training_set"""
+
+    return True
