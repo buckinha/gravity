@@ -50,12 +50,12 @@ def reg_heur(pol_0, sampling_radius=1.0, pw_count=500, years=100, minimum_pathwa
 
     #prepare the summary dictionary to return
     summary = {}
-    summary.["Path"] = None
-    summary.["Values"] = None
-    summary.["Steps"] = None
-    summary.["R Plotting"] = None
-    summary.["Exit Type"] = ""
-    summary.["Message"] = ""
+    summary["Path"] = None
+    summary["Values"] = None
+    summary["Steps"] = None
+    summary["R Plotting"] = None
+    summary["Exit Type"] = ""
+    summary["Message"] = ""
 
     #get initial set
     pw = SWMT.limited_MDP_set(pw_count, years, pol_0, random_seed=0, sampling_radius=sampling_radius)
@@ -169,7 +169,7 @@ def reg_heur(pol_0, sampling_radius=1.0, pw_count=500, years=100, minimum_pathwa
             if not SILENT: print("Exit Condition: The current policy could not produce enough non-LB/SA pathways.")
             exit_message = "Step " + str(step) + ": The current policy could not produce enough non-LB/SA pathways."
             summary["Message"] = "The current policy could not produce enough non-LB/SA pathways."
-            summary["Exit Type"]] = "PLATEAU"
+            summary["Exit Type"] = "PLATEAU"
 
             #since we're breaking here, add the constant to the value list since we'll miss that step otherwise
             val_history.append(results.params[0])
@@ -287,15 +287,15 @@ def reg_heur(pol_0, sampling_radius=1.0, pw_count=500, years=100, minimum_pathwa
 
     #finish the summary dictionary to return
     #it should already have "Message" and "Exit Type" added
-    summary.["Path"] = pol_history
-    summary.["Values"] = val_history
-    summary.["Steps"] = step_history
-    summary.["R Plotting"] = r_lines
+    summary["Path"] = pol_history
+    summary["Values"] = val_history
+    summary["Steps"] = step_history
+    summary["R Plotting"] = r_lines
 
     return summary
 
 
-def RH_Climb(policy_set=None, policy_range=[[-25,25],[-25,25]], plateau_function=dummy_filter, max_climbs=25, max_steps=25, sampling_radius=1.0, step_alpha=1.0, pathway_count=[100,200,300,400,500], pw_count_minimum=20, p_value=0.05):
+def RH_Climb(policy_set=None, policy_range=[[-25,25],[-25,25]], plateau_function=None, max_climbs=25, max_steps=25, sampling_radius=1.0, step_alpha=1.0, pathway_count=[100,200,300,400,500], pw_count_minimum=20, p_value=0.05):
     """ Conducts multiple runs through the regression heuristic in an attempt to find a global optima.
 
     DESCRIPTION:
@@ -372,7 +372,8 @@ def RH_Climb(policy_set=None, policy_range=[[-25,25],[-25,25]], plateau_function
         #filter the current policy, and if necessary, draw a new one
         for redraw in range(100):
             #limiting redraw attempts...
-
+            #TODO
+            pass
 
 
 

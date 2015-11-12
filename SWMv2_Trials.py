@@ -4,7 +4,7 @@ import MDP, MDP_opt, SWMv2, HKB_Heuristics, random, numpy, datetime
 import os.path
 from sphere_dist import sphere_dist
 
-def standard_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HABITAT=False, sampling_radius=0.0):
+def standard_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HABITAT=False, percentage_habitat=0, sampling_radius=0.0):
     """
     Generates a set of SWM v2 pathways and returns them as a list of MDP pathway objects
 
@@ -38,11 +38,11 @@ def standard_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_H
         pw = SWMv2.simulate(timesteps, pol, random_seed=i+8500+random_seed, SILENT=True)
 
         #add the simulation to the list after converting it's form
-        pathways[i] = SWMv2.convert_to_MDP_pathway(pw, VALUE_ON_HABITAT=VALUE_ON_HABITAT)
+        pathways[i] = SWMv2.convert_to_MDP_pathway(pw, VALUE_ON_HABITAT=VALUE_ON_HABITAT, percentage_habitat=percentage_habitat)
 
     return pathways
 
-def limited_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HABITAT=False, sampling_radius=0.0, fail_at_count=2000):
+def limited_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HABITAT=False, percentage_habitat=0, sampling_radius=0.0, fail_at_count=2000):
     """
     Generates as per the standard set, but rejects pathways with suppression_rate = 0 or 1
 
@@ -85,7 +85,7 @@ def limited_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HA
             pass
         else:
             #this pathway can be accepted
-            pathways[i] = SWMv2.convert_to_MDP_pathway(pw,VALUE_ON_HABITAT=VALUE_ON_HABITAT)
+            pathways[i] = SWMv2.convert_to_MDP_pathway(pw,VALUE_ON_HABITAT=VALUE_ON_HABITAT,percentage_habitat=percentage_habitat)
             i += 1
 
             #check for i being in range

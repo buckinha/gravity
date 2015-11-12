@@ -171,8 +171,19 @@ def simulate(timesteps, policy=[0,0,0,0,0,0], random_seed=0, model_parameters={}
 
 
         #Record state information
-        states[i] = [current_vulnerability, current_timber, heat, moisture, choice, choice_prob, policy_value, current_reward, current_habitat, i]
-
+        #states[i] = [current_vulnerability, current_timber, heat, moisture, choice, choice_prob, policy_value, current_reward, current_habitat, i]
+        states[i] = {
+                      "Vulnerability": current_vulnerability,
+                      "Timber": current_timber,
+                      "Heat": heat,
+                      "Moisture": moisture,
+                      "Choice": choice,
+                      "Choice Probability": choice_prob,
+                      "Policy Value": policy_value,
+                      "Reward": current_reward,
+                      "Habitat": current_habitat,
+                      "Time Step": i
+                    }
 
 
         ### TRANSITION ###
@@ -224,12 +235,26 @@ def simulate(timesteps, policy=[0,0,0,0,0,0], random_seed=0, model_parameters={}
     suppressions = 0.0
     joint_prob = 1.0
     prob_sum = 0.0
+
+    #state information is stored as:
+    # states[i] = {
+    #                   "Vulnerability": current_vulnerability,
+    #                   "Timber": current_timber,
+    #                   "Heat": heat,
+    #                   "Moisture": moisture,
+    #                   "Choice": choice,
+    #                   "Choice Probability": choice_prob,
+    #                   "Policy Value": policy_value,
+    #                   "Reward": current_reward,
+    #                   "Habitat": current_habitat,
+    #                   "Time Step", i
+    #                 }
     for i in range(timesteps):
-        if states[i][4]: suppressions += 1
-        joint_prob *= states[i][5]
-        prob_sum += states[i][5]
-        vals.append(states[i][7])
-        hab.append(states[i][8])
+        if states[i]["Choice"]: suppressions += 1
+        joint_prob *= states[i]["Choice Probability"]
+        prob_sum += states[i]["Choice Probability"]
+        vals.append(states[i]["Reward"])
+        hab.append(states[i]["Habitat"])
     ave_prob = prob_sum / timesteps
 
     summary = {
@@ -322,7 +347,7 @@ def sanitize_policy(policy):
 
     return pol
 
-def convert_to_MDP_pathway(SWMv2_pathway):
+def convert_to_MDP_pathway(SWMv2_pathway,VALUE_ON_HABITAT=False, percentage_habitat=0):
     """ Converts a SWMv2 pathway into a generic MDP_Pathway object and returns it"""
     
     #create a new MDP pathway object, with policy length = 5
@@ -337,23 +362,43 @@ def convert_to_MDP_pathway(SWMv2_pathway):
     
     for i in range(len(SWMv2_pathway["States"])):
         event = MDP.MDP_Event(i)
+
+        #state information is stored as:
+        # states[i] = {
+        #                   "Vulnerability": current_vulnerability,
+        #                   "Timber": current_timber,
+        #                   "Heat": heat,
+        #                   "Moisture": moisture,
+        #                   "Choice": choice,
+        #                   "Choice Probability": choice_prob,
+        #                   "Policy Value": policy_value,
+        #                   "Reward": current_reward,
+        #                   "Habitat": current_habitat,
+        #                   "Time Step", i
+        #                 }
         
-        #in SWIMM, the states are each in the following format:
-        #states[i] = [current_vulnerability, current_timber, heat, moisture, choice, choice_prob, policy_value, current_reward, current_habitat, i]
-        #and the policy should have the form:
-        #        [CONS, HEAT, MOISTURE, TIMBER, VULNERABILITY, HABITAT]
-        heat = SWMv2_pathway["States"][i][2]
-        moisture = SWMv2_pathway["States"][i][3]
-        timber = SWMv2_pathway["States"][i][1]
-        vulnerabilty = SWMv2_pathway["States"][i][0]
-        habitat = SWMv2_pathway["States"][i][8]
+        heat = SWMv2_pathway["States"][i]["Heat"]
+        moisture = SWMv2_pathway["States"][i]["Moisture"]
+        timber = SWMv2_pathway["States"][i]["Timber"]
+        vulnerabilty = SWMv2_pathway["States"][i]["Vulnerability"]
+        habitat = SWMv2_pathway["States"][i]["Habitat"]
         event.state = [1, heat, moisture, timber, vulnerabilty, habitat ]
 
         event.state_length = 6
-        event.action = SWMv2_pathway["States"][i][4]
-        event.decision_prob = SWMv2_pathway["States"][i][5]
-        event.action_prob = SWMv2_pathway["States"][i][6]
-        event.rewards = [SWMv2_pathway["States"][i][7]]
+        event.action = SWMv2_pathway["States"][i]["Choice"]
+        event.decision_prob = SWMv2_pathway["States"][i]["Choice Probability"]
+        event.action_prob = SWMv2_pathway["States"][i]["Policy Value"]
+
+        #setting value.  Value_on_habitat takes precedence, followed by percentage_habitat.
+        #if neither are set, then the default is to use the regular (timber val - supp cost) reward.
+        if VALUE_ON_HABITAT:
+            event.rewards = SWMv2_pathway["States"][i]["Habitat"]
+        elif percentage_habitat > 0:
+            part_hab = SWMv2_pathway["States"][i]["Habitat"] * percentage_habitat
+            part_val = SWMv2_pathway["States"][i]["Habitat"] * (1 - percentage_habitat)
+            event.rewards = part_hab + part_val
+        else:
+            event.rewards = SWMv2_pathway["States"][i]["Reward"]
         
         new_MDP_pw.events.append(event)
 
