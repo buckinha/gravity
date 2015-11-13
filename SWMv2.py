@@ -29,9 +29,11 @@ def simulate(timesteps, policy=[0,0,0,0,0,0], random_seed=0, model_parameters={}
     vuln_max = 1.0
     vuln_min = 0.02
 
-    timber_max = 10.0
+    timber_max = 1.0
     timber_min = 0.0
     
+    #timber multiplier: this is to scale the rewards while leaving the raw timber values between 0 and 1
+    timber_multiplier = 10.0
 
 
 
@@ -66,18 +68,18 @@ def simulate(timesteps, policy=[0,0,0,0,0,0], random_seed=0, model_parameters={}
     if "Vulnerability Change After Mild" in model_parameters.keys(): vuln_change_after_mild = model_parameters["Vulnerability Change After Mild"]
     if "Vulnerability Change After Severe" in model_parameters.keys(): vuln_change_after_severe = model_parameters["Vulnerability Change After Severe"]
 
-    timber_change_after_suppression = 0.1
-    timber_change_after_mild = 0.1
-    timber_change_after_severe = -3.0
+    timber_change_after_suppression = 0.01
+    timber_change_after_mild = 0.01
+    timber_change_after_severe = -0.3
     if "Timber Value Change After Suppression" in model_parameters.keys(): timber_change_after_suppression = model_parameters["Timber Value Change After Suppression"]
     if "Timber Value Change After Mild" in model_parameters.keys(): timber_change_after_mild = model_parameters["Timber Value Change After Mild"]
     if "Timber Value Change After Severe" in model_parameters.keys(): timber_change_after_severe = model_parameters["Timber Value Change After Severe"]
 
     habitat_mild_interval = 5
     habitat_severe_interval = 20
-    habitat_loss_if_no_mild = 0.2
-    habitat_loss_if_no_severe = 0.2
-    habitat_gain = 0.1
+    habitat_loss_if_no_mild = 0.02
+    habitat_loss_if_no_severe = 0.02
+    habitat_gain = 0.01
 
 
     if "Probabilistic Choices" in model_parameters.keys():
@@ -91,9 +93,9 @@ def simulate(timesteps, policy=[0,0,0,0,0,0], random_seed=0, model_parameters={}
     #starting_condition = 0.8
     starting_Vulnerability = random.uniform(0.2,0.8)
     if "Starting Vulnerability" in model_parameters.keys(): starting_condition = model_parameters["Starting Condition"]
-    starting_timber = random.uniform(2,8)
+    starting_timber = random.uniform(0.2,0.8)
     if "Starting Timber Value" in model_parameters.keys(): starting_timber = model_parameters["Starting Timber Value"]
-    starting_habitat = random.uniform(2,8)
+    starting_habitat = random.uniform(0.2,0.8)
     if "Starting Habitat Value" in model_parameters.keys(): starting_habitat = model_parameters["Starting Habitat Value"]
 
     #setting 'enums'
@@ -166,7 +168,7 @@ def simulate(timesteps, policy=[0,0,0,0,0,0], random_seed=0, model_parameters={}
                 #this is modeling the timber values lost in a large fire.
                 burn_penalty = burn_cost
 
-        current_reward = current_timber - supp_cost - burn_penalty
+        current_reward = (timber_multiplier * current_timber) - supp_cost - burn_penalty
 
 
 
@@ -222,7 +224,7 @@ def simulate(timesteps, policy=[0,0,0,0,0,0], random_seed=0, model_parameters={}
         if current_vulnerability < vuln_min: current_vulnerability = vuln_min
         if current_timber > timber_max: current_timber = timber_max
         if current_timber < timber_min: current_timber = timber_min
-        if current_habitat > 10: current_habitat = 10
+        if current_habitat > 1: current_habitat = 1
         if current_habitat < 0: current_habitat = 0
 
 
@@ -269,7 +271,7 @@ def simulate(timesteps, policy=[0,0,0,0,0,0], random_seed=0, model_parameters={}
                 "ID Number": random_seed,
                 "Timesteps": timesteps,
                 "Generation Policy": policy,
-                "Version": "1.2",
+                "Version": "2.0",
                 "Vulnerability Min": vuln_min,
                 "Vulnerability Max": vuln_max,
                 "Vulnerability Change After Suppression": vuln_change_after_suppression,

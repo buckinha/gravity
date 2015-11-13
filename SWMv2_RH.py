@@ -4,7 +4,7 @@ import statsmodels.api as stats
 
 
 
-def reg_heur(pol_0, sampling_radius=1.0, pw_count=500, years=100, minimum_pathways=100, alpha_step=1, p_val_limit=0.1, max_steps=20,PRINT_R_PLOTTING=False, SILENT=False):
+def reg_heur(pol_0, sampling_radius=0.2, pw_count=500, years=100, minimum_pathways=100, alpha_step=0.1, p_val_limit=0.1, max_steps=1,PRINT_R_PLOTTING=False, SILENT=False, random_seed=0):
     """Uses multivariable regressions to choose step directions for a SWMv2 Hill-climb
 
     ARGUEMENTS
@@ -58,8 +58,8 @@ def reg_heur(pol_0, sampling_radius=1.0, pw_count=500, years=100, minimum_pathwa
     summary["Message"] = ""
 
     #get initial set
-    pw = SWMT.limited_MDP_set(pw_count, years, pol_0, random_seed=0, sampling_radius=sampling_radius)
-    if len(pw) < 100:
+    pw = SWMT.limited_MDP_set(pw_count, years, pol_0, random_seed=random_seed, sampling_radius=sampling_radius)
+    if len(pw) < minimum_pathways:
         if not SILENT: print("Initial Policy produced too many LB or SA pathways... quitting.")
         summary["Message"] = "Initial Policy produced too many LB or SA pathways."
         summary["Exit Type"] = "INITIAL_PLATEAU"
@@ -70,9 +70,12 @@ def reg_heur(pol_0, sampling_radius=1.0, pw_count=500, years=100, minimum_pathwa
     current_pw_length = len(pw)
 
     #constructing the X matrix as a 2D list
-    X = [None] * len(pol_0)
-    for b in range(len(pol_0)):
-        X[b] = [0.0] * len(pw)
+    #X = [None] * len(pol_0)
+    #for b in range(len(pol_0)):
+    #    X[b] = [0.0] * len(pw)
+    X = [None] * len(pw)
+    for p in range(len(pw)):
+        X[p] = [0.0] * len(pol_0)
 
     #construct the Y vector
     y    = [0.0] * len(pw)
@@ -87,23 +90,23 @@ def reg_heur(pol_0, sampling_radius=1.0, pw_count=500, years=100, minimum_pathwa
 
         #get the x values
         for b in range(len(pol_0)):
-            X[b][p] = pw[p].generation_policy_parameters[b] - pol_0[b]
+            X[p][b] = pw[p].generation_policy_parameters[b] - pol_0[b]
 
     #convert the X matrix to a scipy matrix, and add a constant term
-    X = scipy.matrix(X)
+    X = scipy.matrix(X)#.transpose()
     X = stats.add_constant(X)
 
     # Fit regression model
     results = stats.OLS(y, X).fit()
 
     #Inspect the results
-    #print results.summary()
+    print results.summary()
 
     # print("")
     # print("")
     # print("")
-    #print("Coeffs: " + str(results.params))
-    #print("p-vals: " + str(results.pvalues))
+    print("Coeffs: " + str(results.params))
+    print("p-vals: " + str(results.pvalues))
 
     #check if regression parameters are in-bounds
     OOB = True
@@ -150,7 +153,15 @@ def reg_heur(pol_0, sampling_radius=1.0, pw_count=500, years=100, minimum_pathwa
             # policy params list, and the first of them is the regression constant. So in the 
             # following step, we just shift up one, to match the coefficients with their proper
             # policy terms.
-            center_pol[b] = center_pol[b] + alpha_step * ( results.params[b+1] / max_coef )
+
+            #putting individual checks on p-values
+            if results.pvalues[b] <= p_val_limit:
+                center_pol[b] = center_pol[b] + alpha_step * ( results.params[b+1] / max_coef )
+            else:
+                #the p-value for this term isn't good enough, so just leave the policy parameter alone
+                #which is the same as:
+                #center_pol[b] = center_pol[b]
+                pass
 
             #record the step direction and magnitude as well, in case it's needed
             this_step[b] =                  alpha_step * ( results.params[b+1] / max_coef )
@@ -162,7 +173,7 @@ def reg_heur(pol_0, sampling_radius=1.0, pw_count=500, years=100, minimum_pathwa
         step_history.append(this_step[:])
 
         #generate a new limited_MDP_set
-        pw = SWMT.limited_MDP_set(pw_count, years, center_pol, random_seed=step, sampling_radius=sampling_radius)
+        pw = SWMT.limited_MDP_set(pw_count, years, center_pol, random_seed=random_seed+step, sampling_radius=sampling_radius)
 
         #check for pathway sets that are too short (because of plateau policies)
         if len(pw) < minimum_pathways:
@@ -184,11 +195,11 @@ def reg_heur(pol_0, sampling_radius=1.0, pw_count=500, years=100, minimum_pathwa
             current_pw_length = len(pw)
 
             #re-constructing the X matrix as a 2D list
-            X = [None] * len(pol_0)
-            for b in range(len(pol_0)):
-                X[b] = [0.0] * len(pw)
+            X = [None] * len(pw)
+            for p in range(len(pw)):
+                X[p] = [0.0] * len(pol_0)
 
-            #re-construct the Y vector
+            #construct the Y vector
             y    = [0.0] * len(pw)
 
         #fill the X matrix and Y vector from the new pathway data
@@ -200,7 +211,7 @@ def reg_heur(pol_0, sampling_radius=1.0, pw_count=500, years=100, minimum_pathwa
 
             #get the x values
             for b in range(len(pol_0)):
-                X[b][p] = pw[p].generation_policy_parameters[b] - pol_0[b]
+                X[p][b] = pw[p].generation_policy_parameters[b] - pol_0[b]
 
         #convert the X matrix to a scipy matrix, and add a constant term
         X = scipy.matrix(X)
