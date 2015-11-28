@@ -4,7 +4,7 @@ import statsmodels.api as stats
 
 
 
-def reg_heur(pol_0, sampling_radius=0.2, pw_count=500, years=100, minimum_pathways=100, alpha_step=0.1, p_val_limit=0.1, max_steps=1,PRINT_R_PLOTTING=False, SILENT=False, random_seed=0):
+def reg_heur(pol_0, sampling_radius=0.5, pw_count=500, years=100, minimum_pathways=100, alpha_step=1, p_val_limit=0.05, max_steps=1,PRINT_R_PLOTTING=False, SILENT=False, random_seed=0):
     """Uses multivariable regressions to choose step directions for a SWMv2 Hill-climb
 
     ARGUEMENTS
@@ -130,6 +130,10 @@ def reg_heur(pol_0, sampling_radius=0.2, pw_count=500, years=100, minimum_pathwa
     val_history.append(results.params[0] + 0) #the constant is closely related to the MC average value
     step_history = []
     exit_message = ""
+
+    #print("")
+    #print("regression constant was: " + str(results.params[0]))
+    #print("pathway mean is: " + str(SWMT.stats(pw)["Mean"]))
 
     #now enter the loop
     for step in range(max_steps):

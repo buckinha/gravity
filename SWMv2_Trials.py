@@ -121,7 +121,7 @@ def stats(pathway_set, SILENT=False):
     suppression_rate = [0.0] * len(pathway_set)
 
     for p in range(len(pathway_set)):
-        values[p] = pathway_set[p].net_value / len(pathway_set) / len(pathway_set[p].events)
+        values[p] = pathway_set[p].net_value / len(pathway_set[p].events)
         suppression_rate[p] = pathway_set[p].metadata["Suppression Rate"]
 
 

@@ -47,11 +47,11 @@ def simulate(timesteps, policy=[0,0,0,0,0,0], random_seed=0, model_parameters={}
     #REWARD STRUCTURE
     
     #cost of suppression in a mild event
-    supp_cost_mild = 5
+    supp_cost_mild = 9
     if "Suppression Cost - Mild Event" in model_parameters.keys(): supp_cost_mild = model_parameters["Suppression Cost - Mild Event"]
 
     #cost of suppresion in a severe event
-    supp_cost_severe = 10
+    supp_cost_severe = 13
     if "Suppression Cost - Severe Event" in model_parameters.keys(): supp_cost_severe = model_parameters["Suppression Cost - Severe Event"]
 
     #cost of a severe fire on the next timestep
@@ -70,16 +70,19 @@ def simulate(timesteps, policy=[0,0,0,0,0,0], random_seed=0, model_parameters={}
 
     timber_change_after_suppression = 0.01
     timber_change_after_mild = 0.01
-    timber_change_after_severe = -0.3
+    timber_change_after_severe = -0.5
     if "Timber Value Change After Suppression" in model_parameters.keys(): timber_change_after_suppression = model_parameters["Timber Value Change After Suppression"]
     if "Timber Value Change After Mild" in model_parameters.keys(): timber_change_after_mild = model_parameters["Timber Value Change After Mild"]
     if "Timber Value Change After Severe" in model_parameters.keys(): timber_change_after_severe = model_parameters["Timber Value Change After Severe"]
 
-    habitat_mild_interval = 5
-    habitat_severe_interval = 20
-    habitat_loss_if_no_mild = 0.02
-    habitat_loss_if_no_severe = 0.02
-    habitat_gain = 0.01
+    #habitat transition variables
+    habitat_mild_maximum = 15
+    habitat_mild_minimum = 0
+    habitat_severe_maximum = 40
+    habitat_severe_minimum = 10
+    habitat_loss_if_no_mild = 0.2
+    habitat_loss_if_no_severe = 0.2
+    habitat_gain = 0.1
 
 
     if "Probabilistic Choices" in model_parameters.keys():
@@ -123,12 +126,14 @@ def simulate(timesteps, policy=[0,0,0,0,0,0], random_seed=0, model_parameters={}
         # and not available to the logistic function as a parameter
         severity = MILD
         if heat >= (1 - current_vulnerability): 
-            if moisture < ((event_max - event_min) * 0.3):
+            #if moisture < ((event_max - event_min) * 0.3):
+            if True:
                 severity = SEVERE
 
 
         #logistic function for the policy choice
-        policy_crossproduct = pol[0] + pol[1]*heat + pol[2]*moisture + pol[3]*current_timber + pol[4]*current_vulnerability + pol[5]*current_habitat
+        #policy_crossproduct = pol[0] + pol[1]*heat + pol[2]*moisture + pol[3]*current_timber + pol[4]*current_vulnerability + pol[5]*current_habitat
+        policy_crossproduct  = pol[0] + pol[1]*heat +    0.0*moisture + pol[3]*current_timber + pol[4]*current_vulnerability + pol[5]*current_habitat
         if policy_crossproduct > 100: policy_crossproduct = 100
         if policy_crossproduct < -100: policy_crossproduct = -100
 
@@ -169,6 +174,7 @@ def simulate(timesteps, policy=[0,0,0,0,0,0], random_seed=0, model_parameters={}
                 burn_penalty = burn_cost
 
         current_reward = (timber_multiplier * current_timber) - supp_cost - burn_penalty
+        #current_reward = 10 + (timber_multiplier * current_timber) - supp_cost - burn_penalty
 
 
 
@@ -183,7 +189,7 @@ def simulate(timesteps, policy=[0,0,0,0,0,0], random_seed=0, model_parameters={}
                       "Choice Probability": choice_prob,
                       "Policy Value": policy_value,
                       "Reward": current_reward,
-                      "Habitat": current_habitat,
+                      "Habitat": 10 * current_habitat,
                       "Time Step": i
                     }
 
@@ -194,30 +200,44 @@ def simulate(timesteps, policy=[0,0,0,0,0,0], random_seed=0, model_parameters={}
             if severity == SEVERE:
                 current_vulnerability += vuln_change_after_severe
                 current_timber += timber_change_after_severe
-                #reset both interval counters
+
+                #reset both timers
                 time_since_severe = 0
-                time_since_mild = 0
+                time_since_mild += 1
+
             elif severity == MILD:
                 current_vulnerability += vuln_change_after_mild
                 current_timber += timber_change_after_mild
-                #reset mild interval counter, increment severe
+
+                #reset mild, increment severe
                 time_since_mild = 0
                 time_since_severe += 1
         else:
             #suppression
             current_vulnerability += vuln_change_after_suppression
             current_timber += timber_change_after_suppression
+
+            #increment both timers
             time_since_mild += 1
             time_since_severe += 1
 
-        #check for habitat changes
-        if (time_since_mild <= habitat_mild_interval) and (time_since_severe <= habitat_severe_interval):
+        #check for habitat changes. 
+        #Note to self: suppression effects are already taken into account above
+        if ( (time_since_mild <= habitat_mild_maximum) and 
+             (time_since_mild >= habitat_mild_minimum) and
+             (time_since_severe <= habitat_severe_maximum) and
+             (time_since_severe >= habitat_severe_minimum)  ):
+
+            #this fire is happy on all counts
             current_habitat += habitat_gain
         else:
-            if time_since_mild > habitat_mild_interval:
+            #this fire is unhappy in some way.
+            if (time_since_mild > habitat_mild_maximum) or (time_since_mild < habitat_mild_minimum):
                 current_habitat -= habitat_loss_if_no_mild
-            if time_since_severe > habitat_severe_interval:
+            if (time_since_severe > habitat_severe_maximum) or (time_since_severe < habitat_severe_minimum):
                 current_habitat -= habitat_loss_if_no_severe
+
+
 
         #Enforce state variable bounds
         if current_vulnerability > vuln_max: current_vulnerability = vuln_max
@@ -260,8 +280,8 @@ def simulate(timesteps, policy=[0,0,0,0,0,0], random_seed=0, model_parameters={}
     ave_prob = prob_sum / timesteps
 
     summary = {
-                "Average State Value": round(numpy.mean(vals),1),
-                "Total Pathway Value": round(numpy.sum(vals),0),
+                "Average State Value": round(numpy.mean(vals),3),
+                "Total Pathway Value": round(numpy.sum(vals),3),
                 "STD State Value": round(numpy.std(vals),1),
                 "Average Habitat Value": round(numpy.mean(hab),1),
                 "Suppressions": suppressions,
@@ -282,11 +302,6 @@ def simulate(timesteps, policy=[0,0,0,0,0,0], random_seed=0, model_parameters={}
                 "Timber Value Change After Suppression": timber_change_after_suppression,
                 "Timber Value Change After Mild": timber_change_after_mild,
                 "Timber Value Change After Severe": timber_change_after_severe,
-                "Habitat Mild Interval": habitat_mild_interval,
-                "Habitat Severe Interval": habitat_severe_interval,
-                "Habitat Loss If No Severe Fire": habitat_loss_if_no_severe,
-                "Habitat Loss If No Mild Fire": habitat_loss_if_no_mild,
-                "Habitat Gain With Optimal Fire": habitat_gain,
                 "Suppression Cost - Mild": supp_cost_mild,
                 "Suppression Cost - Severe": supp_cost_severe,
                 "Severe Burn Cost": burn_cost
