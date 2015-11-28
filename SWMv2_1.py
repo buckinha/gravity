@@ -338,7 +338,7 @@ def policy_function(feature_vector, policy, vector_length_scaling=False):
     transformed_features = [1.0] + transformed_features
 
     #do the raw crossproduct of the features times the values
-    cross_product = np.sum(  [feature_vector[i] * policy[i] for i in range(len(policy))]  )
+    cross_product = np.sum(  [transformed_features[i] * policy[i] for i in range(len(policy))]  )
 
     #do the vector length scaling step, if desired
     if vector_length_scaling:

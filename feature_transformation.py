@@ -37,37 +37,35 @@ def feature_transformation(feature_vector):
     # habitat STD: 3.28672846053
 
 
-    #                 CONS  HEAT      HUMID    TIMB     VULN    HAB
-    feature_means = ( 1.0,  0.5,      0.5,     0.4779,  0.3744, 1.5713)
-    feature_STDs  = ( 0.0,  0.2888,   0.2888,  0.4121,  0.3723, 3.2867)
+    #                 HEAT      HUMID    TIMB     VULN    HAB
+    feature_means = ( 0.5,      0.5,     0.4779,  0.3744, 1.5713)
+    feature_STDs  = ( 0.2888,   0.2888,  0.4121,  0.3723, 3.2867)
 
 
     #the feature transformations are done one-at-a-time to allow for custom handling of each one.
     #The generic goal is:    mean=0    STD = 0.5
 
+    #NOTE: the constant has not been added to the features, so in SWMv2.1, there are only 5 feature values
+
     #Transform feature 0 
-    #  - This is the constant, and should always be a one.
-    adjusted_vector[0] = 1.0
+    # "heat" value
+    adjusted_vector[0] =  (feature_vector[0] - feature_means[0]) / (feature_STDs[0] * 2)
 
     #Transform feature 1
-    # "heat" value
+     # "humidity" value
     adjusted_vector[1] =  (feature_vector[1] - feature_means[1]) / (feature_STDs[1] * 2)
-
-    #Transform feature 2
-    # "humidity" value
-    adjusted_vector[2] =  (feature_vector[2] - feature_means[2]) / (feature_STDs[2] * 2)
 
     #Transform feature 3
     # "timber" value
-    adjusted_vector[3] =  (feature_vector[3] - feature_means[3]) / (feature_STDs[3] * 2)
+    adjusted_vector[2] =  (feature_vector[2] - feature_means[2]) / (feature_STDs[2] * 2)
 
     #Transform feature 4
     # "vulnerability" value
-    adjusted_vector[4] =  (feature_vector[4] - feature_means[4]) / (feature_STDs[4] * 2)
+    adjusted_vector[3] =  (feature_vector[3] - feature_means[3]) / (feature_STDs[3] * 2)
 
     #Transform feature 5
     # "habitat" value
-    adjusted_vector[5] =  (feature_vector[5] - feature_means[5]) / (feature_STDs[5] * 2)
+    adjusted_vector[4] =  (feature_vector[4] - feature_means[4]) / (feature_STDs[4] * 2)
 
 
     #return the transformed features
