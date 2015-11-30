@@ -64,11 +64,27 @@ res_sim_mid = np.array(filter(lambda x: (x[0]>=0.005 and x[0]<=0.995), results))
 
 
 
-#show accuracy for actual edge cases
 
-#show accuracy NEAR the edge (perhaps 95%-99% / 1%-5%)
 
-#show accuracy AWAY from the edges (perhaps 5% to 95%, 10% to 90%, etc...)
+#saving to disk
+if False:
+    from sklearn.externals import joblib
+    joblib.dump(RFC_SA, 'RFC_models/SWMv2_1_RFC_SA.pkl') 
+    joblib.dump(RFC_LB, 'RFC_models/SWMv2_1_RFC_LB.pkl') 
+
+#Later you can load back the pickled model (possibly in another Python process) with:
+#RFC_SA2 = joblib.load('RFC_models/SWMv2_1_RFC_SA.pkl') 
+#RFC_LB2 = joblib.load('RFC_models/SWMv2_1_RFC_LB.pkl') 
+
+
+
+
+
+
+
+
+
+#graphing
 
 
 size_1 = 25

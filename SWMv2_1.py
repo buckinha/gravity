@@ -350,27 +350,6 @@ def policy_function(feature_vector, policy, vector_length_scaling=False):
     return func_val
 
 
-def simulate_all_policies(timesteps=10000, start_seed=0):
-
-
-    result_CT =    simulate(timesteps, policy=[  0,  0, 0, 0, 0, 0], random_seed=start_seed, SILENT=True)
-    result_LB =    simulate(timesteps, policy=[-20,  0, 0, 0, 0, 0], random_seed=start_seed, SILENT=True)
-    result_SA =    simulate(timesteps, policy=[ 20,  0, 0, 0, 0, 0], random_seed=start_seed, SILENT=True)
-
-    result_CT["Name"] = "Coin-Toss:    "
-    result_SA["Name"] = "Suppress-All: "
-    result_LB["Name"] = "Let-burn:     "
-
-    results = [result_CT, result_SA, result_LB]
-    print("Policy            Ave    STD    SupRate  AveProb  JointProb")
-    for r in results:
-        print(r["Name"] + "   "),
-        print(str(r["Average State Value"]) + "   "),
-        print(str(r["STD State Value"]) + "   "),
-        print(str(r["Suppression Rate"]) + "      "),
-        print(str(r["Average Probability"]) + "    "),
-        print(str(r["Joint Probability"]))
-
 def sanitize_policy(policy):
     pol = []
     if isinstance(policy, list):

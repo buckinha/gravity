@@ -114,6 +114,38 @@ def limited_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HA
 
     return pathways
 
+def filtered_MDP_set(filters, pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HABITAT=False, percentage_habitat=0, sampling_radius=0.0, fail_at_count=2000):
+    """Returns a set of SWMv2.1 MDP objects with filtered random policies around the one given.
+
+    ARGUEMENTS
+    filter - a function handle or list of function handles. Function should return True to EXCLUDE a policy
+    pathway_count: integer - how many pathways to create
+    timesteps: integer  - how many timesteps each pathway should be simulated for
+    policy: either a list of policy values, or a string "CT" "SA" "LB" "MIXED_CT", "MIXED_ALL"
+    random_seed: the initial random seed from which to work. Each pathway will have it's
+      own random seed derived from this one. Giving the same parameters and random seed will
+      always result in the same set of pathways (bugs notwithsdanding)
+    VALUE_ON_HABITAT: boolean, When set to True, the pathways will have the habitat value index as 
+      their "value" rather than the logging/suppression budget values
+    sampling_radius: float, etc...: when each pathway is simulated, the policy it is given is shifted 
+      by up to this amount in either the + or - direction, but limited such that the perturbation vector
+      is within the spherical region with this radius around the initial policy .
+    fail_at_count: an integer reflecting the maximum number of attempts the function can make at finding
+      policies/pathways that have suppression rates other than 0 or 1
+    """
+    
+    #check to see if the filter is a list, or just a singlet
+    if isinstance(filters, list):
+        #it's already a list
+        pass
+    else:
+        #it's not a list, so we'll assume it's a singlet and make it into a length 1 list.
+        filters = [filters]
+
+
+
+
+
 
 def stats(pathway_set, SILENT=False):
     """Prints several descriptive statistics about a pathway set to standard out."""

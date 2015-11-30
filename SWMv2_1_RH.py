@@ -5,7 +5,7 @@ import statsmodels.api as stats
 
 
 
-def reg_heur(pol_0, sampling_radius=0.5, pw_count=500, years=100, minimum_pathways=100, alpha_step=1, p_val_limit=0.05, max_steps=5,PRINT_R_PLOTTING=False, SILENT=False, random_seed=0):
+def reg_heur(pol_0, sampling_radius=0.1, pw_count=500, years=200, minimum_pathways=100, alpha_step=0.1, p_val_limit=0.10, max_steps=15,PRINT_R_PLOTTING=False, SILENT=True, random_seed=0):
     """Uses multivariable regressions to choose step directions for a SWMv2.1 Hill-climb
 
     ARGUEMENTS
@@ -393,8 +393,3 @@ def RH_Climb(policy_set=None, policy_range=[[-25,25],[-25,25]], plateau_function
             pass
 
 
-
-def dummy_filter(policy_to_check, training_set):
-    """Returns True if this policy is "allowed" by the rule learned upon training_set"""
-
-    return True
