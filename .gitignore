@@ -2,6 +2,11 @@
 *.fgl
 *.png
 *.pathways
+HKB_SPSA_Outputs/
+RFC_models/
+SWM_HC_Outputs/
+SWMv2_RandomSearch.py
+obj_fn_graph_2_outputs/
 
 # Sean ignored files
 *.bmp
