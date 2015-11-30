@@ -133,7 +133,7 @@ def filtered_MDP_set(filters, pathway_count, timesteps, policy, random_seed=0, V
     fail_at_count: an integer reflecting the maximum number of attempts the function can make at finding
       policies/pathways that have suppression rates other than 0 or 1
     """
-    
+
     #check to see if the filter is a list, or just a singlet
     if isinstance(filters, list):
         #it's already a list
@@ -142,8 +142,54 @@ def filtered_MDP_set(filters, pathway_count, timesteps, policy, random_seed=0, V
         #it's not a list, so we'll assume it's a singlet and make it into a length 1 list.
         filters = [filters]
 
+    #sanitize the input policy
+    original_pol = SWM.sanitize_policy(policy)
 
 
+    #an array for the policies we'll simulate on
+    pols = [ [0.0] * len(original_pol) for i in range(pathway_count) ]
+
+    #instantiate new_pol
+    new_pol = [0.0] * len(original_pol)
+
+    #counter for good pathways
+    good_pathways = 0
+
+    #try getting policies that satisfy the filters
+    for i in range(fail_at_count):
+        new_pol = sphere_dist(center=original_pol, radius=sampling_radius, random_seed=i+random_seed)
+
+        #vet the policy with any filters that have been passed
+        discard = False
+        for f in filters:
+            if f(new_pol):
+                discard = True
+
+        #add this policy to the list if it passed the filters
+        if not discard:
+            #copy new_pol
+            pols[good_pathways] = new_pol[:]
+            #increment count of good pathways
+            good_pathways += 1
+
+            #check for exit condition
+            if good_pathways >= pathway_count:
+                break
+
+    #we've finished the loop, so check to see if we found enough good policies
+    if good_pathways < pathway_count:
+        #we didn't fill the set, so... do what?
+        print("WARNING: filtered_MDP_set() could only find " + str(good_pathways) + " that passed the filter(s)...")
+
+
+    #create the simulations
+    sims = [None] * good_pathways
+    for i in range(good_pathways):
+        pw = SWM.simulate(timesteps, pols[i], random_seed=good_pathways+9200+random_seed, SILENT=True)
+        sims[i] = SWM.convert_to_MDP_pathway(pw,VALUE_ON_HABITAT=VALUE_ON_HABITAT,percentage_habitat=percentage_habitat)
+    
+
+    return sims
 
 
 
