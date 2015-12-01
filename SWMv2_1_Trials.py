@@ -114,7 +114,7 @@ def limited_MDP_set(pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HA
 
     return pathways
 
-def filtered_MDP_set(filters, pathway_count, timesteps, policy, random_seed=0, VALUE_ON_HABITAT=False, percentage_habitat=0, sampling_radius=0.0, fail_at_count=2000):
+def filtered_MDP_set(filters, pathway_count, timesteps, policy, random_seed=0, sampling_radius=0.0, fail_at_count=2000, VALUE_ON_HABITAT=False, percentage_habitat=0):
     """Returns a set of SWMv2.1 MDP objects with filtered random policies around the one given.
 
     ARGUEMENTS
@@ -162,8 +162,11 @@ def filtered_MDP_set(filters, pathway_count, timesteps, policy, random_seed=0, V
         #vet the policy with any filters that have been passed
         discard = False
         for f in filters:
-            if f(new_pol):
+            if f([new_pol]):
+                print("Filtering Policy:" + str(new_pol))
                 discard = True
+            #else:
+             #   print(str(f(new_pol)) + "   " + str(new_pol))
 
         #add this policy to the list if it passed the filters
         if not discard:
@@ -179,7 +182,7 @@ def filtered_MDP_set(filters, pathway_count, timesteps, policy, random_seed=0, V
     #we've finished the loop, so check to see if we found enough good policies
     if good_pathways < pathway_count:
         #we didn't fill the set, so... do what?
-        print("WARNING: filtered_MDP_set() could only find " + str(good_pathways) + " that passed the filter(s)...")
+        print("WARNING: filtered_MDP_set() could only find " + str(good_pathways) + " pathways that passed the filter(s)...")
 
 
     #create the simulations

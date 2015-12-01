@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 
 training_set_size=500
 test_set_size = 2000
-RFC_depth = 2
-RFC_estimators = 20
+RFC_depth = 4
+RFC_estimators = 40
 
 
 
@@ -35,10 +35,10 @@ RFC_SA = RandomForestClassifier(max_depth=RFC_depth, n_estimators=RFC_estimators
 RFC_LB = RandomForestClassifier(max_depth=RFC_depth, n_estimators=RFC_estimators)
 
 #train one RFC on SA
-RFC_SA.fit(training_set[0::,3::], training_set[0::,0])
+RFC_SA.fit(training_set[0::,3:9], training_set[0::,0])
 
 #train another RFC on LB
-RFC_LB.fit(training_set[0::,3::], training_set[0::,1])
+RFC_LB.fit(training_set[0::,3:9], training_set[0::,1])
 
 
 

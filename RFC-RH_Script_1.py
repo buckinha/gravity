@@ -42,10 +42,10 @@ RFC_LB = RandomForestClassifier(max_depth=RFC_depth, n_estimators=RFC_estimators
 #      Train RFCs      #
 ########################
 #training one RFC on SA
-RFC_SA.fit(training_set[0::,3::], training_set[0::,0])
+RFC_SA.fit(training_set[0::,3:9], training_set[0::,0])
 
 #training another RFC on LB
-RFC_LB.fit(training_set[0::,3::], training_set[0::,1])
+RFC_LB.fit(training_set[0::,3:9], training_set[0::,1])
 
 #if desired: saving to disk
 if False:
