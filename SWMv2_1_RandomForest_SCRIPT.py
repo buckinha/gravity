@@ -1,5 +1,6 @@
 
 import SWMv2_1 as SWM
+import SWMv2_1_Trials as SWMT
 import numpy as np
 from sphere_dist import sphere_dist
 from sklearn.ensemble import RandomForestClassifier
@@ -7,15 +8,15 @@ import matplotlib.pyplot as plt
 
 
 training_set_size=500
-test_set_size = 2000
-RFC_depth = 4
-RFC_estimators = 40
+test_set_size = 1000
+RFC_depth = 100
+RFC_estimators = 200
 
 
 
 #create training set
 
-raw = [SWM.simulate(timesteps=200, policy=sphere_dist([0,0,0,0,0,0],25,random_seed=i), random_seed=i, SILENT=True) for i in range(training_set_size)]
+raw = [SWM.simulate(timesteps=200, policy=sphere_dist([0,0,0,0,0,0],35,random_seed=i), random_seed=i, SILENT=True) for i in range(training_set_size)]
 
 clean = [ [raw[i]["Suppression Rate"]] + raw[i]["Generation Policy"]  for i in range(len(raw))]
 
@@ -61,6 +62,19 @@ results = np.array(results)
 res_sim_SA = np.array(filter(lambda x: x[0]>=0.995, results))
 res_sim_LB = np.array(filter(lambda x: x[0]<=0.005, results))
 res_sim_mid = np.array(filter(lambda x: (x[0]>=0.005 and x[0]<=0.995), results))
+
+
+#print classification statistics
+if True:
+    print("Classifier Set-up:")
+    print(" Training Set Size: {}").format(training_set_size)
+    print(" Test Set Size:     {}").format(test_set_size)
+    print(" Tree Depth:        {}").format(RFC_depth)
+    print(" # of Estimators:   {}").format(RFC_estimators)
+    print("")
+    SWMT.classifier_stats(results,0,1,2)
+
+
 
 
 

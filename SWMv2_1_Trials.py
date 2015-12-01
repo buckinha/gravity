@@ -353,24 +353,86 @@ def classifier_stats(dataset, index_of_suppression_rate, index_of_SA_flag, index
     MID_low_and_not_flagged =  filter(lambda x: ((not x[i_SA]) and (not x[i_LB])), low_mid_subset)
     MID_low_BUT_flagged =      filter(lambda x: (x[i_SA] or x[i_LB]),              low_mid_subset)
 
-    SA_c = str(round(  len(SA_and_flagged_SA) / len(SA_set), 3)  )
-    SA_ic = str(round(  len(SA_and_NOT_flagged_SA) / len(SA_set), 3)  )
-    #TODO keep going
-    #SA_pc = 
-    #SA_pg = 
-    #etc.. 
+    #tabulating stats
+    SA_c  =  len(SA_and_flagged_SA) 
+    SA_ic =  len(SA_and_NOT_flagged_SA) 
+    SA_pc = round(  float(len(SA_and_flagged_SA)) / float(len(SA_set)), 3)  
+    SA_pa = round(  float(len(SA_and_flagged_SA)) / float(len(dataset)), 3)  
+     
+    LB_c  =  len(LB_and_flagged_LB) 
+    LB_ic =  len(LB_and_NOT_flagged_LB) 
+    LB_pc = round(  float(len(LB_and_flagged_LB)) / float(len(LB_set)), 3)  
+    LB_pa = round(  float(len(LB_and_flagged_LB)) / float(len(dataset)), 3)  
+     
+    MID_c  =  len(MID_and_not_flagged) 
+    MID_ic =  len(MID_BUT_flagged) 
+    MID_pc = round(  float(len(MID_and_not_flagged)) / float(len(MID_set)), 3)  
+    MID_pa = round(  float(len(MID_and_not_flagged)) / float(len(dataset)), 3)  
+     
+    MH_c  =  len(MID_high_and_not_flagged) 
+    MH_ic =  len(MID_high_BUT_flagged) 
+    MH_pc = round(  float(len(MID_high_and_not_flagged)) / float(len(high_mid_subset)), 3)  
+    MH_pa = round(  float(len(MID_high_and_not_flagged)) / float(len(dataset)), 3)  
+     
+    ML_c  =  len(MID_low_and_not_flagged) 
+    ML_ic =  len(MID_low_BUT_flagged) 
+    ML_pc = round(  float(len(MID_low_and_not_flagged)) / float(len(low_mid_subset)), 3)  
+    ML_pa = round(  float(len(MID_low_and_not_flagged)) / float(len(dataset)), 3)  
 
-    #print table
+    total_correct = len(SA_and_flagged_SA) + len(LB_and_flagged_LB) + len(MID_and_not_flagged)
+    TOTAL_perc = round( float( total_correct ) / float(len(dataset)) , 3  )
+    total_incorrect = len(dataset) - total_correct
+
     print("\nClassification Statistics")
-    print("----------------------------------------------------------------------------")
-    print("Simulations               Classified                  |  Percent Correct")
-    print("Resulted in:              Correctly      Incorrectly  |  of goup     of ALL")
-    print("----------------------------------------------------------------------------")
-    print("SA                        " + SA_c + "     " + SA_ic + "  |  " + SA_pc + "   " + SA_pg
-    print("LB")
-    print("Middle")
-    print("")
-    print("Mid-high ")
-    print("Supp. Rte (0.95 to 0.995%)")
-    print("Mid-low ")
-    print("Supp. Rte (0.005 to 0.05%)")
+    print("-------------------------------------------------------------------------------")
+    print("| Simulations               Classified:                 |  " +"%" + " Correct:         |")
+    print("| Resulted in:              Correctly      Incorrectly  |  of group    of ALL |")
+    print("|-----------------------------------------------------------------------------|")
+    print("| SA                        {0:5.0f}            {1:5.0f}      |   {2:5.3f}       {3:5.3f} |").format(SA_c, SA_ic, SA_pc, SA_pa)
+    print("| LB                        {0:5.0f}            {1:5.0f}      |   {2:5.3f}       {3:5.3f} |").format(LB_c, LB_ic, LB_pc, LB_pa)
+    print("| Middle                    {0:5.0f}            {1:5.0f}      |   {2:5.3f}       {3:5.3f} |").format(MID_c, MID_ic, MID_pc, MID_pa)
+    print("| TOTAL                     {0:5.0f}            {1:5.0f}      |               {2:.3f} |").format(total_correct, total_incorrect, TOTAL_perc)
+    print("|-----------------------------------------------------------------------------|")
+    print("| Mid-high                  {0:5.0f}            {1:5.0f}      |   {2:5.3f}       {3:5.3f} |").format(MH_c, MH_ic, MH_pc, MH_pa)
+    print("| Suppression Rate (0.95 to 0.995)                      |                     |")
+    print("| Mid-low                   {0:5.0f}            {1:5.0f}      |   {2:5.3f}       {3:5.3f} |").format(ML_c, ML_ic, ML_pc, ML_pa)
+    print("| Suppression Rate (0.005 to 0.05)                      |                     |")
+    print("-------------------------------------------------------------------------------")
+
+
+#{0:.3f}.'.format(math.pi)
+
+"""
+Example Dataset for testing
+ds = [[1.0,  1, 0], #In SA, correct
+ [0.999,1, 0], #In SA, correct
+ [0.999,1, 0], #In SA, correct
+ [1.0,  0, 0], #In SA, incorrect
+ [0.998,0 ,1], #In SA, incorrect
+ [0.999,1 ,1], #In SA, incorrect (SORT OF...)
+ [0.98, 0, 0], #In mid_high, correct
+ [0.97, 0, 0], #In mid_high, correct
+ [0.966,0, 0], #In mid_high, correct
+ [0.97, 1, 0], #In mid_high, incorrect
+ [0.96, 0, 1], #In mid_high, incorrect
+ [0.96, 1, 1], #In mid_high, incorrect
+ [0.94, 0, 0], #In mid, correct
+ [0.43, 0, 0], #In mid, correct
+ [0.29, 0, 0], #In mid, correct
+ [0.83, 1, 0], #in mid, incorrect 
+ [0.54, 0, 1], #in mid, incorrect
+ [0.34, 1, 1], #in mid, incorrect
+ [0.04, 0, 0], #In mid_low, correct
+ [0.03, 0, 0], #In mid_low, correct
+ [0.02, 0, 0], #In mid_low, correct
+ [0.03, 0, 1], #in mid_low, incorrect 
+ [0.02, 1, 0], #in mid_low, incorrect
+ [0.01, 1, 1], #in mid_low, incorrect 
+ [0.0,  0, 1], #in LB, correct
+ [0.0,  0, 1], #in LB, correct
+ [0.0,  0, 1], #in LB, correct
+ [0.0,  1, 0], #in LB, incorrect
+ [0.0,  0, 0], #in LB, incorrect
+ [0.0,  1, 1] #in LB, incorrect (SORT OF...)
+]
+"""
