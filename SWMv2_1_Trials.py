@@ -308,3 +308,69 @@ def sweep_one_parameter(pathways, years, parameter_index, param_min, param_max, 
         return results
 
 
+def classifier_stats(dataset, index_of_suppression_rate, index_of_SA_flag, index_of_LB_flag):
+    """Prints classification percent-correct stats as a table
+
+    ARGUEMENTS
+    dataset: a 2D list or np.array in the format list[row][column] or np.array[row,column]
+
+    index_of_suppression_rate: integer. The column index of the suppression rate value for a given row
+
+    index_of_SA_flag: integer. The column index of the 0/1 flag for a row having been flagged as suppress-all
+
+    index_of_LB_flag: integer. The column index of the 0/1 flag for a row having been flagged as let-burn
+
+    RETURNS
+    None (It just prints the table to standard out)
+
+    """
+
+    #shortening the names
+    i_SA = index_of_SA_flag
+    i_LB = index_of_LB_flag
+    i_sup_rt = index_of_suppression_rate
+
+
+    #get subsets
+    SA_set = filter(lambda x: x[i_sup_rt]>=0.995, dataset)
+    LB_set = filter(lambda x: x[i_sup_rt]<=0.005, dataset)
+    MID_set = filter(lambda x: ((x[i_sup_rt]<0.995) and (x[i_sup_rt]>0.005)), dataset)
+
+    high_mid_subset = filter(lambda x: ((x[i_sup_rt]<0.995) and (x[i_sup_rt]>0.95)), dataset)
+    low_mid_subset = filter(lambda x: ((x[i_sup_rt]<0.05) and (x[i_sup_rt]>0.005)), dataset)
+
+
+    #filter by occurences of correct and incorrect flags
+
+    SA_and_flagged_SA =        filter(lambda x: x[i_SA],                           SA_set)
+    SA_and_NOT_flagged_SA =    filter(lambda x: not x[i_SA],                       SA_set)
+    LB_and_flagged_LB =        filter(lambda x: x[i_LB],                           LB_set)
+    LB_and_NOT_flagged_LB =    filter(lambda x: not x[i_LB],                       LB_set)
+    MID_and_not_flagged =      filter(lambda x: ((not x[i_SA]) and (not x[i_LB])), MID_set)
+    MID_BUT_flagged =          filter(lambda x: (x[i_SA] or x[i_LB]),              MID_set)
+    MID_high_and_not_flagged = filter(lambda x: ((not x[i_SA]) and (not x[i_LB])), high_mid_subset)
+    MID_high_BUT_flagged =     filter(lambda x: (x[i_SA] or x[i_LB]),              high_mid_subset)
+    MID_low_and_not_flagged =  filter(lambda x: ((not x[i_SA]) and (not x[i_LB])), low_mid_subset)
+    MID_low_BUT_flagged =      filter(lambda x: (x[i_SA] or x[i_LB]),              low_mid_subset)
+
+    SA_c = str(round(  len(SA_and_flagged_SA) / len(SA_set), 3)  )
+    SA_ic = str(round(  len(SA_and_NOT_flagged_SA) / len(SA_set), 3)  )
+    #TODO keep going
+    #SA_pc = 
+    #SA_pg = 
+    #etc.. 
+
+    #print table
+    print("\nClassification Statistics")
+    print("----------------------------------------------------------------------------")
+    print("Simulations               Classified                  |  Percent Correct")
+    print("Resulted in:              Correctly      Incorrectly  |  of goup     of ALL")
+    print("----------------------------------------------------------------------------")
+    print("SA                        " + SA_c + "     " + SA_ic + "  |  " + SA_pc + "   " + SA_pg
+    print("LB")
+    print("Middle")
+    print("")
+    print("Mid-high ")
+    print("Supp. Rte (0.95 to 0.995%)")
+    print("Mid-low ")
+    print("Supp. Rte (0.005 to 0.05%)")
